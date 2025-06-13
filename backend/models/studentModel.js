@@ -66,7 +66,6 @@ const studentSchema = mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  // Additional fields for profile integration
   email: {
     type: String,
     default: ''
@@ -75,7 +74,6 @@ const studentSchema = mongoose.Schema({
     type: String,
     default: '1st Year'
   },
-  // Search optimization fields
   searchKeywords: [{
     type: String
   }]
@@ -83,7 +81,6 @@ const studentSchema = mongoose.Schema({
   timestamps: true
 });
 
-// Create text indexes for better search performance
 studentSchema.index({
   name: 'text',
   ugNumber: 'text',
@@ -92,7 +89,6 @@ studentSchema.index({
   mftName: 'text'
 });
 
-// Pre-save middleware to generate search keywords
 studentSchema.pre('save', function(next) {
   const keywords = [
     this.name?.toLowerCase(),
