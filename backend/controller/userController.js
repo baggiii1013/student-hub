@@ -23,7 +23,6 @@ const registerUser = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("username already registered");
   }
-
   //Hash password
   const hashedPassword = await bcrpyt.hash(password, 10);
   console.log("Hashed password :" + hashedPassword);
@@ -33,13 +32,21 @@ const registerUser = asyncHandler(async (req, res) => {
     password: hashedPassword,
   });
   if (user) {
-    res.status(201).json({ _id: user.id, email: user.email });
+    console.log(`User created successfully ${user}`);
+    res.status(201).json({ 
+      success: true,
+      error: false,
+      message: "User registered successfully",
+      user: {
+        _id: user.id, 
+        username: user.username,
+        email: user.email 
+      }
+    });
   } else {
     res.status(400);
     throw new Error("user data is not valid");
   }
-  console.log(`User created successfully ${user}`);
-  res.json({ success:true,error:false,message: "Register the user " });
 });
 
 //@desc login a user
@@ -92,4 +99,92 @@ const redirectToLogin = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { registerUser, loginUser, currentUser, redirectToLogin  };
+//@desc get user profile by slug
+//@route get/api/users/profile/:slug
+//@access private
+const getUserProfile = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  
+  // Find user by username (slug)
+  const user = await User.findOne({ username: slug }).select('-password');
+  
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  
+  res.json({
+    id: user._id,
+    username: user.username,
+    email: user.email,
+    fullName: user.fullName || user.username.charAt(0).toUpperCase() + user.username.slice(1).replace('-', ' '),
+    ugNumber: user.ugNumber || 'Not specified',
+    course: user.course || 'Not specified',
+    year: user.year || 'Not specified',
+    department: user.department || 'Not specified',
+    phone: user.phone || 'Not provided',
+    bio: user.bio || 'Student at the university.',
+    interests: user.interests || 'Not specified',
+    skills: user.skills || 'Not specified',
+    socialLinks: user.socialLinks || { github: '', linkedin: '', twitter: '' }
+  });
+});
+
+//@desc update user profile
+//@route put/api/users/profile/:slug
+//@access private
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  const userId = req.user.id;
+  
+  // Find the user to update
+  const user = await User.findOne({ username: slug });
+  
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  
+  // Check if the logged-in user is trying to update their own profile
+  if (user._id.toString() !== userId) {
+    res.status(403);
+    throw new Error("You can only update your own profile");
+  }
+  
+  // Update allowed fields
+  const allowedUpdates = [
+    'fullName', 'ugNumber', 'course', 'year', 'department', 
+    'phone', 'bio', 'interests', 'skills', 'socialLinks'
+  ];
+  
+  const updates = {};
+  allowedUpdates.forEach(field => {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  });
+  
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    updates,
+    { new: true }
+  ).select('-password');
+  
+  res.json({
+    id: updatedUser._id,
+    username: updatedUser.username,
+    email: updatedUser.email,
+    fullName: updatedUser.fullName,
+    ugNumber: updatedUser.ugNumber,
+    course: updatedUser.course,
+    year: updatedUser.year,
+    department: updatedUser.department,
+    phone: updatedUser.phone,
+    bio: updatedUser.bio,
+    interests: updatedUser.interests,
+    skills: updatedUser.skills,
+    socialLinks: updatedUser.socialLinks
+  });
+});
+
+module.exports = { registerUser, loginUser, currentUser, redirectToLogin, getUserProfile, updateUserProfile };

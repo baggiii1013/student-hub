@@ -1,1 +1,210 @@
 @import "tailwindcss";
+
+/* Mobile-first responsive improvements */
+html {
+  font-size: 16px; /* Prevent zoom on iOS */
+}
+
+body {
+  overflow-x: hidden;
+  /* text-size-adjust: 100%; */
+}
+
+/* Mobile-specific styles */
+@media (max-width: 480px) {
+  /* Ultra-small screens */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Smaller text on very small screens */
+  .text-responsive {
+    font-size: 0.875rem;
+  }
+  
+  /* Tighter spacing */
+  .space-y-responsive > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Smaller padding for cards */
+  .card-mobile-xs {
+    padding: 0.75rem;
+  }
+  
+  /* Smaller search input on very small screens */
+  .search-input-xs {
+    padding: 0.5rem 0.75rem;
+    font-size: 14px;
+  }
+  
+  /* Stack buttons vertically on very small screens */
+  .btn-stack-xs {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .btn-stack-xs button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Prevent horizontal scrolling */
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* Ensure touch targets are at least 44px */
+  button, input, select, textarea {
+    min-height: 44px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  /* Improve tap targets for small screens */
+  a, button {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Better form spacing on mobile */
+  form {
+    padding: 1rem;
+  }
+  
+  /* Ensure cards don't break layout on small screens */
+  .search-results-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  /* Better mobile navigation */
+  .mobile-nav {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  /* Mobile-friendly buttons */
+  .btn-mobile {
+    width: 100%;
+    min-height: 48px;
+    font-size: 16px;
+  }
+  
+  /* Better card spacing on mobile */
+  .card-mobile {
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+  
+  /* Responsive text sizing */
+  .title-mobile {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+  
+  .subtitle-mobile {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  
+  /* Better spacing for mobile forms */
+  .form-mobile {
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  /* Improve mobile grid layouts */
+  .grid-mobile-responsive {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  /* Better mobile profile layouts */
+  .profile-mobile {
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  /* Mobile-optimized animations */
+  .animate-mobile {
+    animation-duration: 0.3s;
+  }
+  
+  /* Reduce motion for better mobile performance */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Custom animations for better mobile performance */
+@keyframes blob {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  33% {
+    transform: translateY(-10px) scale(1.1);
+  }
+  66% {
+    transform: translateY(10px) scale(0.9);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Improve focus visibility for accessibility */
+input:focus, select:focus, textarea:focus, button:focus {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+
+/* Better mobile viewport handling */
+@viewport {
+  width: device-width;
+}
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent zoom on input focus on iOS */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  select, textarea, input[type="text"], input[type="password"], 
+  input[type="datetime"], input[type="datetime-local"], 
+  input[type="date"], input[type="month"], input[type="time"], 
+  input[type="week"], input[type="number"], input[type="email"], 
+  input[type="url"] {
+    font-size: 16px;
+  }
+}
+
+/* Better text rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Improve touch scrolling performance */
+* {
+  overscroll-behavior: contain;
+}

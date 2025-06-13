@@ -3,8 +3,10 @@ import { useAuth } from '../context/AuthContext'
 import './App.css'
 import Home from './components/Home'
 import Login from './components/Login'
+import Profile from './components/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
 import Register from './components/Register'
+import StudentDetail from './components/StudentDetail'
 
 function App() {
   const { user, loading } = useAuth()
@@ -29,6 +31,21 @@ function App() {
         element={
           <ProtectedRoute>
             <Home />
+          </ProtectedRoute>
+        } 
+      />      <Route 
+        path="/profile/:slug" 
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/student/:ugNumber" 
+        element={
+          <ProtectedRoute>
+            <StudentDetail />
           </ProtectedRoute>
         } 
       />
