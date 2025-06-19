@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const bcrpyt = require("bcrypt");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
@@ -24,12 +24,13 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error("username already registered");
   }
   //Hash password
-  const hashedPassword = await bcrpyt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
   console.log("Hashed password :" + hashedPassword);
   const user = await User.create({
     username,
     email,
     password: hashedPassword,
+    fullName: username.charAt(0).toUpperCase() + username.slice(1).replace(/[-_]/g, ' '), // Generate fullName from username
   });
   if (user) {
     console.log(`User created successfully ${user}`);
@@ -59,26 +60,45 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new Error("All the fields are mandatory!");
   }
   const user = await User.findOne({ email });
-  // compare the passwords
-  if (user && (await bcrpyt.compare(password, user.password))) {
-    const accessToken = jwt.sign(
-      {
-        user: {
-          username: user.username,
-          email: user.email,
-          id: user.id,
-        },
-      },
-      process.env.ACCESS_TOKEN_SECRET,
-      {
-        expiresIn: "240m"
-      }
-    );
-    res.status(200).json({ accessToken });
-  } else {
+  
+  if (!user) {
     res.status(401);
-    throw new Error("email or password not found");
+    throw new Error("Invalid email or password");
   }
+  
+  // compare the passwords
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    res.status(401);
+    throw new Error("Invalid email or password");
+  }
+  
+  // Generate access token
+  const accessToken = jwt.sign(
+    {
+      user: {
+        username: user.username,
+        email: user.email,
+        id: user.id,
+      },
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: "240m"
+    }
+  );
+  
+  res.status(200).json({ 
+    success: true,
+    error: false,
+    message: "Login successful",
+    accessToken,
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email
+    }
+  });
 });
 
 //@desc current user

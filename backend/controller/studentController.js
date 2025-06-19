@@ -24,6 +24,13 @@ const searchStudents = asyncHandler(async (req, res) => {
     // Text search across multiple fields
     if (query) {
       filter.$or = [
+        { "Name Of Student": { $regex: query, $options: 'i' } },
+        { "UG Number": { $regex: query, $options: 'i' } },
+        { "ENROLLMENT Number": { $regex: query, $options: 'i' } },
+        { "Branch": { $regex: query, $options: 'i' } },
+        { "Division": { $regex: query, $options: 'i' } },
+        { "MFT Name": { $regex: query, $options: 'i' } },
+        // Also search the camelCase fields in case some data uses them
         { name: { $regex: query, $options: 'i' } },
         { ugNumber: { $regex: query, $options: 'i' } },
         { enrollmentNo: { $regex: query, $options: 'i' } },
@@ -34,24 +41,58 @@ const searchStudents = asyncHandler(async (req, res) => {
     }
 
     // Additional filters
-    if (branch) filter.branch = branch;
-    if (division) filter.division = division;
-    if (batch) filter.batch = parseInt(batch);
-    if (btechDiploma) filter.btechDiploma = btechDiploma;
+    if (branch) filter["Branch"] = branch;
+    if (division) filter["Division"] = division;
+    if (batch) filter["Batch"] = parseInt(batch);
+    if (btechDiploma) filter["BTech/Diploma"] = btechDiploma;
 
-    // Sort options
+    // Sort options - map to actual field names in database
     const sortOptions = {};
-    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    const sortFieldMap = {
+      'name': 'Name Of Student',
+      'ugNumber': 'UG Number',
+      'branch': 'Branch',
+      'division': 'Division',
+      'batch': 'Batch',
+      'year': 'year'
+    };
+    const actualSortField = sortFieldMap[sortBy] || sortBy;
+    sortOptions[actualSortField] = sortOrder === 'desc' ? -1 : 1;
 
     // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Execute search
-    const students = await Student.find(filter)
+    const rawStudents = await Student.find(filter)
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
       .select('-__v -searchKeywords');
+
+    // Transform data to normalize field names
+    const students = rawStudents.map(student => {
+      const studentObj = student.toObject();
+      return {
+        _id: studentObj._id,
+        name: studentObj["Name Of Student"] || studentObj.name || "",
+        ugNumber: studentObj["UG Number"] || studentObj.ugNumber || "",
+        enrollmentNo: studentObj["ENROLLMENT Number"] || studentObj.enrollmentNo || "",
+        branch: studentObj["Branch"] || studentObj.branch || "",
+        division: studentObj["Division"] || studentObj.division || "",
+        batch: studentObj["Batch"] || studentObj.batch || "",
+        btechDiploma: studentObj["BTech/Diploma"] || studentObj.btechDiploma || "BTech",
+        mftName: studentObj["MFT Name"] || studentObj.mftName || "",
+        mftContactNumber: studentObj["MFT Contact Number"] || studentObj.mftContactNumber || "",
+        phoneNumber: studentObj["Phone Number Of Student"] || studentObj.phoneNumber || "",
+        timeTable: studentObj["Time Table"] || studentObj.timeTable || "",
+        roomNumber: studentObj["Room Number"] || studentObj.roomNumber || "",
+        year: studentObj.year || "1st Year",
+        email: studentObj.email || "",
+        dateOfAdmission: studentObj.dateOfAdmission || studentObj["Date of Admission"],
+        srNo: studentObj["Sr No"] || studentObj.srNo,
+        seqInDivision: studentObj["Seq In Division"] || studentObj.seqInDivision
+      };
+    });
 
     // Get total count for pagination
     const totalStudents = await Student.countDocuments(filter);
@@ -93,11 +134,36 @@ const getAllStudents = asyncHandler(async (req, res) => {
   try {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
-    const students = await Student.find()
-      .sort({ srNo: 1 })
+    const rawStudents = await Student.find()
+      .sort({ "Sr No": 1 })
       .skip(skip)
       .limit(parseInt(limit))
       .select('-__v -searchKeywords');
+
+    // Transform data to normalize field names
+    const students = rawStudents.map(student => {
+      const studentObj = student.toObject();
+      return {
+        _id: studentObj._id,
+        name: studentObj["Name Of Student"] || studentObj.name || "",
+        ugNumber: studentObj["UG Number"] || studentObj.ugNumber || "",
+        enrollmentNo: studentObj["ENROLLMENT Number"] || studentObj.enrollmentNo || "",
+        branch: studentObj["Branch"] || studentObj.branch || "",
+        division: studentObj["Division"] || studentObj.division || "",
+        batch: studentObj["Batch"] || studentObj.batch || "",
+        btechDiploma: studentObj["BTech/Diploma"] || studentObj.btechDiploma || "BTech",
+        mftName: studentObj["MFT Name"] || studentObj.mftName || "",
+        mftContactNumber: studentObj["MFT Contact Number"] || studentObj.mftContactNumber || "",
+        phoneNumber: studentObj["Phone Number Of Student"] || studentObj.phoneNumber || "",
+        timeTable: studentObj["Time Table"] || studentObj.timeTable || "",
+        roomNumber: studentObj["Room Number"] || studentObj.roomNumber || "",
+        year: studentObj.year || "1st Year",
+        email: studentObj.email || "",
+        dateOfAdmission: studentObj.dateOfAdmission || studentObj["Date of Admission"],
+        srNo: studentObj["Sr No"] || studentObj.srNo,
+        seqInDivision: studentObj["Seq In Division"] || studentObj.seqInDivision
+      };
+    });
 
     const totalStudents = await Student.countDocuments();
     const totalPages = Math.ceil(totalStudents / parseInt(limit));

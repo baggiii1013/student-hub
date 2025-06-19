@@ -18,7 +18,7 @@ const userSchema = mongoose.Schema(
     },
     fullName: {
       type: String,
-      required: [true, "please add the password"],
+      required: false, // Made optional since we generate it from username
     },
   },
   {
