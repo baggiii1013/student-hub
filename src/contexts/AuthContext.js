@@ -1,5 +1,6 @@
 'use client';
 
+import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
 
@@ -9,29 +10,55 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const username = localStorage.getItem('username');
-    
-    if (token && username) {
-      setUser({ username, token });
+    if (status === 'loading') {
+      setLoading(true);
+      return;
     }
-    setLoading(false);
-  }, []);
+
+    if (session && session.user) {
+      // User is authenticated via NextAuth
+      setUser({
+        id: session.user.id,
+        username: session.user.username,
+        email: session.user.email,
+        fullName: session.user.fullName
+      });
+      setLoading(false);
+    } else {
+      // Check for legacy JWT token authentication
+      const token = localStorage.getItem('token');
+      const username = localStorage.getItem('username');
+      
+      if (token && username) {
+        setUser({ username, token });
+      }
+      setLoading(false);
+    }
+  }, [session, status]);
 
   const login = (token, username) => {
+    // This function is for legacy JWT login
+    // OAuth login is handled by NextAuth
     localStorage.setItem('token', token);
     localStorage.setItem('username', username);
     setUser({ username, token });
     router.push('/');
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    setUser(null);
-    router.push('/login');
+  const logout = async () => {
+    if (session) {
+      // Sign out from NextAuth
+      await signOut({ callbackUrl: '/login' });
+    } else {
+      // Legacy logout
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      setUser(null);
+      router.push('/login');
+    }
   };
 
   const value = {

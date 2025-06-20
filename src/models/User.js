@@ -13,7 +13,25 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, "please add the password"],
+    required: function() {
+      // Password is required only if this is not an OAuth user or if password setup is complete
+      return !this.isOAuthUser || this.passwordSetupComplete;
+    },
+  },
+  isOAuthUser: {
+    type: Boolean,
+    default: false,
+  },
+  passwordSetupComplete: {
+    type: Boolean,
+    default: false,
+  },
+  oauthProvider: {
+    type: String,
+    enum: ['google', 'github', 'facebook'],
+    required: function() {
+      return this.isOAuthUser;
+    }
   },
   fullName: {
     type: String,

@@ -44,6 +44,13 @@ export const authAPI = {
     });
   },
   
+  completeOAuthSetup: async (setupData) => {
+    return apiCall('/users/complete-setup', {
+      method: 'POST',
+      body: JSON.stringify(setupData),
+    });
+  },
+  
   getCurrentUser: async () => {
     return apiCall('/users/current');
   },
