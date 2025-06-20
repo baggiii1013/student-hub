@@ -1,6 +1,5 @@
 'use client';
 
-import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -42,35 +41,30 @@ export default function StudentProfilePage() {
 
   if (loading) {
     return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
-          <div className="text-white text-xl">Loading student profile...</div>
-        </div>
-      </ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading student profile...</div>
+      </div>
     );
   }
 
   if (error || !student) {
     return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-red-400 text-xl mb-4">{error || 'Student not found'}</div>
-            <button
-              onClick={() => router.back()}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
-            >
-              Go Back
-            </button>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-400 text-xl mb-4">{error || 'Student not found'}</div>
+          <button
+            onClick={() => router.back()}
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+          >
+            Go Back
+          </button>
         </div>
-      </ProtectedRoute>
+      </div>
     );
   }
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -inset-10 opacity-50">
@@ -100,27 +94,52 @@ export default function StudentProfilePage() {
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                  <span className="text-gray-300 text-xs sm:text-sm md:text-base text-center">Welcome, {user?.username}!</span>
-                  <div className="flex gap-2 w-full sm:w-auto max-w-xs sm:max-w-none">
-                    <button
-                      onClick={() => router.push('/')}
-                      className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
-                    >
-                      Search
-                    </button>
-                    <button
-                      onClick={() => router.push(`/profile/${user?.username}`)}
-                      className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
-                    >
-                      My Profile
-                    </button>
-                    <button
-                      onClick={logout}
-                      className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
-                    >
-                      Logout
-                    </button>
-                  </div>
+                  {user ? (
+                    <>
+                      <span className="text-gray-300 text-xs sm:text-sm md:text-base text-center">Welcome, {user.username}!</span>
+                      <div className="flex gap-2 w-full sm:w-auto max-w-xs sm:max-w-none">
+                        <button
+                          onClick={() => router.push('/')}
+                          className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
+                        >
+                          Search
+                        </button>
+                        <button
+                          onClick={() => router.push(`/profile/${user.username}`)}
+                          className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
+                        >
+                          My Profile
+                        </button>
+                        <button
+                          onClick={logout}
+                          className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-2 w-full sm:w-auto max-w-xs sm:max-w-none">
+                      <button
+                        onClick={() => router.push('/')}
+                        className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
+                      >
+                        Search
+                      </button>
+                      <button
+                        onClick={() => router.push('/login')}
+                        className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
+                      >
+                        Login
+                      </button>
+                      <button
+                        onClick={() => router.push('/register')}
+                        className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
+                      >
+                        Register
+                      </button>
+                    </div>
+                  )}
                 </div>
               </nav>
             </div>
@@ -304,6 +323,5 @@ export default function StudentProfilePage() {
           </main>
         </div>
       </div>
-    </ProtectedRoute>
   );
 }

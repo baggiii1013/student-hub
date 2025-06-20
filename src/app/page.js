@@ -1,6 +1,5 @@
 'use client';
 
-import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { studentAPI } from '@/lib/api';
 import { useRouter } from 'next/navigation';
@@ -44,63 +43,79 @@ export default function Home() {
   };
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -inset-10 opacity-50">
-            <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-            <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-            <div className="absolute -bottom-8 left-1/3 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -inset-10 opacity-50">
+          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+          <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-1/3 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10">
+        {/* Header with conditional auth buttons */}
+        <header className="pt-4 sm:pt-6 md:pt-8 pb-4 sm:pb-6">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Student Hub
+              </h1>
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <span className="text-gray-300 text-sm">Welcome, {user.username}!</span>
+                  <button
+                    onClick={() => router.push(`/profile/${user.username}`)}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                  >
+                    Profile
+                  </button>
+                  <button
+                    onClick={logout}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => router.push('/login')}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => router.push('/register')}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  >
+                    Register
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`text-center transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mb-8 sm:mb-12`}>
+            <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse">
+              Find Your Peers
+            </h2>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Connect, discover, and collaborate with students across campus. 
+              Search by UG number to find your peers instantly.
+            </p>
           </div>
         </div>
 
-        {/* Main content */}
-        <div className="relative z-10">
-          {/* Header with Logout */}
-          <header className="pt-4 sm:pt-6 md:pt-8 pb-4 sm:pb-6">
-            <div className="container mx-auto px-3 sm:px-6">
-              {/* Navigation Bar */}
-              <nav className={`flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 mb-6 sm:mb-8 transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-                <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">
-                  Student Hub
-                </div>
-                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                  <span className="text-gray-300 text-xs sm:text-sm md:text-base text-center">Welcome, {user?.username}!</span>
-                  <div className="flex gap-2 w-full sm:w-auto max-w-xs sm:max-w-none">
-                    <button
-                      onClick={() => router.push(`/profile/${user?.username}`)}
-                      className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
-                    >
-                      My Profile
-                    </button>
-                    <button
-                      onClick={logout}
-                      className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              </nav>
-              
-              <div className={`text-center transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-                <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse">
-                  Student Hub
-                </h1>
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed px-3 sm:px-4">
-                  Connect, discover, and collaborate with students across campus. 
-                  Search by UG number to find your peers instantly.
-                </p>
-              </div>
-            </div>
-          </header>
-
-          {/* Search Section */}
-          <main className="container mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-12">
-            <div className={`max-w-4xl mx-auto transform transition-all duration-1000 delay-300 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              {/* Search Form */}
-              <form onSubmit={handleSearch} className="mb-6 sm:mb-8 md:mb-12">
+        {/* Search Section */}
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
+          <div className={`max-w-4xl mx-auto transform transition-all duration-1000 delay-300 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+            {/* Search Form */}
+            <form onSubmit={handleSearch} className="mb-6 sm:mb-8 md:mb-12">
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl sm:rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
                   <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-700">
@@ -209,6 +224,5 @@ export default function Home() {
           </main>
         </div>
       </div>
-    </ProtectedRoute>
   );
 }

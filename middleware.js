@@ -5,13 +5,17 @@ export async function middleware(request) {
   const token = await getToken({ req: request });
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for API routes, auth callbacks, and static files
-  if (pathname.startsWith('/api/auth') || pathname.startsWith('/_next')) {
+  // Skip middleware for API routes, auth callbacks, static files, home page, search routes, and students API
+  if (pathname.startsWith('/api/auth') || 
+      pathname.startsWith('/api/students') ||
+      pathname.startsWith('/_next') || 
+      pathname === '/' || 
+      pathname.startsWith('/search')) {
     return NextResponse.next();
   }
 
-  // If user is accessing protected routes
-  if (pathname.startsWith('/profile') || pathname.startsWith('/student') || pathname === '/') {
+  // If user is accessing protected routes (only profile pages now)
+  if (pathname.startsWith('/profile')) {
     if (!token) {
       // No token, redirect to login
       return NextResponse.redirect(new URL('/login', request.url));
@@ -36,7 +40,7 @@ export async function middleware(request) {
         // Redirect to register from login if setup incomplete
         return NextResponse.redirect(new URL(`/register?step=2&email=${encodeURIComponent(token.user.email)}`, request.url));
       }
-      // User is fully authenticated, redirect to home
+      // User is fully authenticated, redirect to home (they can still access it)
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
