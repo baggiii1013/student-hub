@@ -3,7 +3,7 @@
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export default function StudentProfilePage() {
   const { ugNumber } = useParams();
@@ -14,12 +14,7 @@ export default function StudentProfilePage() {
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    fetchStudent();
-  }, [ugNumber]);
-
-  const fetchStudent = async () => {
+  const fetchStudent = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -38,7 +33,12 @@ export default function StudentProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ugNumber]);
+
+  useEffect(() => {
+    setMounted(true);
+    fetchStudent();
+  }, [fetchStudent]);
 
   if (loading) {
     return (

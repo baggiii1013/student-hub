@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export default function ProfilePage() {
   const { slug } = useParams();
@@ -35,11 +35,7 @@ export default function ProfilePage() {
 
   const isOwnProfile = currentUser && currentUser.username === slug;
 
-  useEffect(() => {
-    fetchProfile();
-  }, [slug]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -72,7 +68,11 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug, router]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleSave = async () => {
     try {

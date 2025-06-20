@@ -5,10 +5,10 @@ import { authAPI } from '@/lib/api';
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
-export default function Register() {
+function RegisterContent() {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -222,7 +222,7 @@ export default function Register() {
                 <div className="space-y-4 sm:space-y-6">
                   <div className="text-center mb-6">
                     <p className="text-gray-300 text-sm mb-4">
-                      We use Google authentication for security. After connecting your Google account, you'll be required to set up your own password for additional security.
+                      We use Google authentication for security. After connecting your Google account, you&apos;ll be required to set up your own password for additional security.
                     </p>
                     <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-4">
                       <p className="text-yellow-400 text-xs sm:text-sm font-medium">
@@ -371,5 +371,17 @@ export default function Register() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Register() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <RegisterContent />
+    </Suspense>
   );
 }

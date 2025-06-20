@@ -100,4 +100,5 @@ export const api = {
   },
 };
 
-export default { api, authAPI, studentAPI };
+const apiModule = { api, authAPI, studentAPI };
+export default apiModule;
