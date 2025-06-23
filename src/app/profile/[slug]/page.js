@@ -19,13 +19,25 @@ export default function ProfilePage() {
     try {
       setLoading(true);
       setError('');
+      
+      // Add safety check for slug
+      if (!slug) {
+        setError('Invalid profile URL');
+        return;
+      }
+      
       const data = await api.get(`/users/profile/${slug}`);
       setProfile(data);
     } catch (err) {
       console.error('Error fetching profile:', err);
-      setError(err.response?.data?.message || 'Failed to load profile');
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to load profile';
+      setError(errorMessage);
+      
       if (err.response?.status === 404) {
-        router.push('/');
+        // Don't redirect immediately, let user see the error
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
       }
     } finally {
       setLoading(false);
@@ -111,7 +123,13 @@ export default function ProfilePage() {
               <div className="flex justify-between">
                 <span className="text-gray-900">Account Type:</span>
                 <span className="font-medium text-blue-700">
-                  {profile.isOAuthUser ? `OAuth (${profile.oauthProvider})` : 'Regular Account'}
+                  {profile.isOAuthUser ? `OAuth (${profile.oauthProvider || 'Unknown'})` : 'Regular Account'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-900">Member Since:</span>
+                <span className="font-medium text-blue-700">
+                  {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'Unknown'}
                 </span>
               </div>
             </div>
@@ -138,7 +156,7 @@ export default function ProfilePage() {
               <div className="flex justify-between">
                 <span className="text-gray-600">Last Updated:</span>
                 <span className="font-medium">
-                  {new Date(profile.updatedAt).toLocaleDateString()}
+                  {profile.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : 'Unknown'}
                 </span>
               </div>
             </div>

@@ -19,16 +19,12 @@ export async function GET(request, { params }) {
       id: user._id,
       username: user.username,
       email: user.email,
-      fullName: user.fullName || user.username.charAt(0).toUpperCase() + user.username.slice(1).replace('-', ' '),
-      ugNumber: user.ugNumber || 'Not specified',
-      course: user.course || 'Not specified',
-      year: user.year || 'Not specified',
-      department: user.department || 'Not specified',
-      phone: user.phone || 'Not provided',
-      bio: user.bio || 'Student at the university.',
-      interests: user.interests || 'Not specified',
-      skills: user.skills || 'Not specified',
-      socialLinks: user.socialLinks || { github: '', linkedin: '', twitter: '' }
+      fullName: user.fullName || '',
+      isOAuthUser: user.isOAuthUser || false,
+      oauthProvider: user.oauthProvider || '',
+      passwordSetupComplete: user.passwordSetupComplete || false,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
     });
 
   } catch (error) {
@@ -63,11 +59,8 @@ export async function PUT(request, { params }) {
     
     const profileData = await request.json();
     
-    // Update allowed fields
-    const allowedUpdates = [
-      'fullName', 'ugNumber', 'course', 'year', 'department', 
-      'phone', 'bio', 'interests', 'skills', 'socialLinks'
-    ];
+    // Update allowed fields (only fields that exist in User model)
+    const allowedUpdates = ['fullName', 'username', 'email'];
     
     const updates = {};
     allowedUpdates.forEach(field => {
@@ -87,15 +80,11 @@ export async function PUT(request, { params }) {
       username: updatedUser.username,
       email: updatedUser.email,
       fullName: updatedUser.fullName,
-      ugNumber: updatedUser.ugNumber,
-      course: updatedUser.course,
-      year: updatedUser.year,
-      department: updatedUser.department,
-      phone: updatedUser.phone,
-      bio: updatedUser.bio,
-      interests: updatedUser.interests,
-      skills: updatedUser.skills,
-      socialLinks: updatedUser.socialLinks
+      isOAuthUser: updatedUser.isOAuthUser,
+      oauthProvider: updatedUser.oauthProvider,
+      passwordSetupComplete: updatedUser.passwordSetupComplete,
+      createdAt: updatedUser.createdAt,
+      updatedAt: updatedUser.updatedAt
     });
 
   } catch (error) {

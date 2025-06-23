@@ -29,27 +29,14 @@ const authOptions = {
           
           if (!existingUser) {
             console.log('Creating new OAuth user for', user.email);
-            // Create a new user in our User model with incomplete setup
+            // Create a new user in our User model
             const newUser = new User({
               username: user.email.split('@')[0] + '_temp', // Temporary username
               email: user.email,
               fullName: user.name,
               isOAuthUser: true,
               oauthProvider: 'google',
-              passwordSetupComplete: false,
-              ugNumber: '',
-              course: '',
-              year: '',
-              department: '',
-              phone: '',
-              bio: 'Google OAuth user - setup pending',
-              interests: '',
-              skills: '',
-              socialLinks: {
-                github: '',
-                linkedin: '',
-                twitter: ''
-              }
+              passwordSetupComplete: false
             });
             
             await newUser.save();
