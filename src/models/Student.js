@@ -26,7 +26,6 @@ const studentSchema = new mongoose.Schema({
   },
   branch: {
     type: String,
-    enum: ['CSE', 'AI', 'IT', 'ECE', 'ME', 'CE', 'EE', 'CH', 'BT', 'MT', 'PT', 'TT'],
     default: ''
   },
   btechDiploma: {
