@@ -2,27 +2,38 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
 import connectDB from '@/lib/dbConnection';
 import Student from '@/models/Student';
-import { NextRequest } from 'next/server';
 import * as XLSX from 'xlsx';
 
 export async function POST(request) {
+  console.log('Upload API POST called');
+  
+  // Wrap everything in try-catch to ensure we always return JSON
   try {
+    console.log('Connecting to database...');
     await connectDB();
+    console.log('Database connected');
 
     // Authenticate user (handles both NextAuth sessions and JWT tokens)
+    console.log('Starting authentication...');
     const authResult = await authenticateRequest(request, authOptions);
+    
     if (!authResult.authenticated) {
+      console.log('Authentication failed:', authResult.error);
       return createErrorResponse(authResult.error, 401);
     }
 
-    console.log('User authenticated:', authResult.user.email, 'via', authResult.authType);
+    console.log('User authenticated:', authResult.user?.email || 'unknown', 'via', authResult.authType);
 
+    console.log('Getting form data...');
     const formData = await request.formData();
     const file = formData.get('file');
 
     if (!file) {
+      console.log('No file provided');
       return createErrorResponse('No file provided', 400);
     }
+
+    console.log('File received:', file.name, 'Type:', file.type, 'Size:', file.size);
 
     // Check file type
     const allowedTypes = [
@@ -32,6 +43,7 @@ export async function POST(request) {
     ];
 
     if (!allowedTypes.includes(file.type)) {
+      console.log('Invalid file type:', file.type);
       return createErrorResponse('Invalid file type. Please upload an Excel or CSV file.', 400);
     }
 
@@ -152,7 +164,7 @@ export async function POST(request) {
       }
     }
 
-    return createResponse({
+    const responseData = {
       message: 'Spreadsheet processed successfully',
       summary: {
         totalRows: data.length,
@@ -165,24 +177,48 @@ export async function POST(request) {
       processedStudents: processedStudents.slice(0, 10), // Show first 10 for preview
       errors: errors.slice(0, 5), // Show first 5 errors
       hasMoreErrors: errors.length > 5
-    });
+    };
+
+    console.log('Sending response:', responseData);
+    return createResponse(responseData);
 
   } catch (error) {
     console.error('Upload error:', error);
-    return createErrorResponse('Internal server error during file processing', 500);
+    console.error('Error stack:', error.stack);
+    
+    // Always return JSON, even on unexpected errors
+    try {
+      return createErrorResponse('Internal server error during file processing: ' + error.message, 500);
+    } catch (responseError) {
+      console.error('Failed to create error response:', responseError);
+      // Last resort: manual JSON response
+      return new Response(JSON.stringify({
+        success: false,
+        error: true,
+        message: 'Critical server error'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
   }
 }
 
 // GET method to download a sample template
 export async function GET(request) {
+  console.log('Upload API GET called for template download');
+  
   try {
+    console.log('Starting template generation...');
+    
     // Authenticate user (handles both NextAuth sessions and JWT tokens)
     const authResult = await authenticateRequest(request, authOptions);
     if (!authResult.authenticated) {
+      console.log('GET Authentication failed:', authResult.error);
       return createErrorResponse(authResult.error, 401);
     }
 
-    console.log('User downloading template:', authResult.user.email, 'via', authResult.authType);
+    console.log('GET User downloading template:', authResult.user?.email || 'unknown', 'via', authResult.authType);
 
     // Create sample data
     const sampleData = [
@@ -244,6 +280,21 @@ export async function GET(request) {
 
   } catch (error) {
     console.error('Template download error:', error);
-    return createErrorResponse('Failed to generate template', 500);
+    console.error('Template error stack:', error.stack);
+    
+    // Ensure JSON response for template errors too
+    try {
+      return createErrorResponse('Failed to generate template: ' + error.message, 500);
+    } catch (responseError) {
+      console.error('Failed to create template error response:', responseError);
+      return new Response(JSON.stringify({
+        success: false,
+        error: true,
+        message: 'Critical template generation error'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
   }
 }
