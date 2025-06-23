@@ -3,11 +3,11 @@ import mongoose from 'mongoose';
 const studentSchema = new mongoose.Schema({
   srNo: {
     type: Number,
-    required: true
+    default: 0
   },
   seqInDivision: {
     type: Number,
-    required: true
+    default: 0
   },
   ugNumber: {
     type: String,
@@ -26,8 +26,8 @@ const studentSchema = new mongoose.Schema({
   },
   branch: {
     type: String,
-    required: true,
-    enum: ['CSE', 'AI', 'IT', 'ECE', 'ME', 'CE', 'EE', 'CH', 'BT', 'MT', 'PT', 'TT']
+    enum: ['CSE', 'AI', 'IT', 'ECE', 'ME', 'CE', 'EE', 'CH', 'BT', 'MT', 'PT', 'TT'],
+    default: ''
   },
   btechDiploma: {
     type: String,
@@ -36,19 +36,19 @@ const studentSchema = new mongoose.Schema({
   },
   division: {
     type: String,
-    required: true
+    default: ''
   },
   batch: {
     type: Number,
-    required: true
+    default: 0
   },
   mftName: {
     type: String,
-    required: true
+    default: ''
   },
   mftContactNumber: {
     type: String,
-    required: true
+    default: ''
   },
   phoneNumber: {
     type: String,
