@@ -97,27 +97,21 @@ export default function ProfilePage() {
             
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Full Name:</span>
-                <span className="font-medium">{profile.fullName || 'Not specified'}</span>
+                <span className="text-gray-900">Full Name:</span>
+                <span className="font-medium text-blue-700">{profile.fullName || 'Not specified'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Username:</span>
-                <span className="font-medium">@{profile.username}</span>
+                <span className="text-gray-900">Username:</span>
+                <span className="font-medium text-blue-700">@{profile.username}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Email:</span>
-                <span className="font-medium">{profile.email}</span>
+                <span className="text-gray-900">Email:</span>
+                <span className="font-medium text-blue-700">{profile.email}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Account Type:</span>
-                <span className="font-medium">
+                <span className="text-gray-900">Account Type:</span>
+                <span className="font-medium text-blue-700">
                   {profile.isOAuthUser ? `OAuth (${profile.oauthProvider})` : 'Regular Account'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Member Since:</span>
-                <span className="font-medium">
-                  {new Date(profile.createdAt).toLocaleDateString()}
                 </span>
               </div>
             </div>
