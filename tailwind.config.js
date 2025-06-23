@@ -7,6 +7,10 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'spotify': ['SpotifyMix', 'Arial', 'Helvetica', 'sans-serif'],
+        'sans': ['SpotifyMix', 'Arial', 'Helvetica', 'sans-serif'],
+      },
       animation: {
         'blob': 'blob 7s infinite',
         'tilt': 'tilt 10s infinite linear',
