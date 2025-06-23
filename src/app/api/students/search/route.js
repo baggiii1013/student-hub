@@ -37,7 +37,7 @@ export async function GET(request) {
     const batch = searchParams.get('batch') || '';
     const btechDiploma = searchParams.get('btechDiploma') || '';
     const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 20;
+    const limit = parseInt(searchParams.get('limit')) || 100;
     const sortBy = searchParams.get('sortBy') || 'name';
     const sortOrder = searchParams.get('sortOrder') || 'asc';
 

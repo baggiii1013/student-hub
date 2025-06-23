@@ -10,6 +10,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -18,8 +20,8 @@ export default function Home() {
     setMounted(true);
   }, []);
   
-  const handleSearch = async (e) => {
-    e.preventDefault();
+  const handleSearch = async (e, page = 1) => {
+    e && e.preventDefault();
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
@@ -27,19 +29,37 @@ export default function Home() {
     try {
       const response = await studentAPI.searchStudents({
         query: searchQuery.trim(),
-        limit: 20
+        page: page,
+        limit: 50
       });
       
       if (response.success) {
-        setSearchResults(response.data);
+        if (page === 1) {
+          setSearchResults(response.data);
+          setCurrentPage(1);
+        } else {
+          setSearchResults(prev => [...prev, ...response.data]);
+          setCurrentPage(page);
+        }
+        setPagination(response.pagination);
       } else {
         setSearchResults([]);
+        setPagination(null);
+        setCurrentPage(1);
       }
     } catch (error) {
       console.error('Error searching students:', error);
       setSearchResults([]);
+      setPagination(null);
+      setCurrentPage(1);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (pagination && pagination.hasNextPage) {
+      handleSearch(null, currentPage + 1);
     }
   };
 
@@ -202,7 +222,9 @@ export default function Home() {
                     <span className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-xs sm:text-sm md:text-base font-bold">{searchResults.length}</span>
                     </span>
-                    <span className="text-sm sm:text-base md:text-lg">Search Results</span>
+                    <span className="text-sm sm:text-base md:text-lg">
+                      {pagination ? `Showing ${searchResults.length} of ${pagination.totalStudents} Results` : 'Search Results'}
+                    </span>
                   </h2>
                   <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                     {searchResults.map((student, index) => (
@@ -259,6 +281,31 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
+                  
+                  {/* Load More Button */}
+                  {pagination && pagination.hasNextPage && (
+                    <div className="flex justify-center mt-6 sm:mt-8">
+                      <button
+                        onClick={handleLoadMore}
+                        disabled={isSearching}
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {isSearching ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Loading...
+                          </>
+                        ) : (
+                          <>
+                            <span>Load More ({pagination.totalStudents - searchResults.length} remaining)</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
