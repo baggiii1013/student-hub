@@ -1,5 +1,43 @@
 import jwt from 'jsonwebtoken';
+import { getServerSession } from 'next-auth';
 
+export async function authenticateRequest(request, authOptions) {
+  try {
+    // First try NextAuth session authentication
+    const session = await getServerSession(authOptions);
+    if (session && session.user) {
+      return { 
+        authenticated: true, 
+        user: {
+          id: session.user.id,
+          username: session.user.username,
+          email: session.user.email
+        },
+        authType: 'session'
+      };
+    }
+
+    // Fallback to JWT token authentication
+    const authHeader = request.headers.get('authorization');
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return { authenticated: false, error: 'No authentication provided' };
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return { 
+      authenticated: true, 
+      user: decoded.user,
+      authType: 'jwt'
+    };
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return { authenticated: false, error: 'Authentication failed' };
+  }
+}
+
+// Legacy function for backward compatibility
 export function authenticateToken(request) {
   try {
     const authHeader = request.headers.get('authorization');

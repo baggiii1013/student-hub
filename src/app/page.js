@@ -101,6 +101,12 @@ export default function Home() {
                 <div className="flex items-center gap-4">
                   <span className="text-gray-300 text-sm">Welcome, {user.username}!</span>
                   <button
+                    onClick={() => router.push('/upload')}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  >
+                    Upload Data
+                  </button>
+                  <button
                     onClick={() => router.push(`/profile/${user.username}`)}
                     className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
                   >

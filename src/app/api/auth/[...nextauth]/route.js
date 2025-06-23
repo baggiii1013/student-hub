@@ -14,6 +14,15 @@ const authOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      httpOptions: {
+        timeout: 15000, // 15 seconds timeout
+      },
+      authorization: {
+        params: {
+          scope: 'openid email profile',
+          prompt: 'select_account',
+        },
+      },
     }),
   ],
   callbacks: {
@@ -22,7 +31,9 @@ const authOptions = {
       
       if (account?.provider === 'google') {
         try {
+          console.log('Connecting to database...');
           await connectDB();
+          console.log('Database connected successfully');
           
           // Check if user already exists in our User model
           const existingUser = await User.findOne({ email: user.email });
@@ -39,8 +50,8 @@ const authOptions = {
               passwordSetupComplete: false
             });
             
-            await newUser.save();
-            console.log('New OAuth user created successfully');
+            const savedUser = await newUser.save();
+            console.log('New OAuth user created successfully:', savedUser._id);
           } else {
             console.log('Existing user found:', existingUser.email, 'Setup complete:', existingUser.passwordSetupComplete);
             if (existingUser.isOAuthUser && !existingUser.passwordSetupComplete) {
@@ -53,18 +64,28 @@ const authOptions = {
           return true;
         } catch (error) {
           console.error('Error during sign in:', error);
-          return false;
+          console.error('Error stack:', error.stack);
+          // Still allow sign in even if our custom logic fails
+          return true;
         }
       }
       
       return true;
     },
     async jwt({ token, user, account }) {
-      console.log('JWT callback triggered', { hasUser: !!user, hasAccount: !!account });
+      console.log('JWT callback triggered', { hasUser: !!user, hasAccount: !!account, email: token.email });
       
       if (account && user) {
         try {
-          await connectDB();
+          console.log('JWT callback - connecting to database...');
+          const connectPromise = connectDB();
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+          );
+          
+          await Promise.race([connectPromise, timeoutPromise]);
+          console.log('JWT callback - database connected');
+          
           const dbUser = await User.findOne({ email: user.email });
           
           if (dbUser) {
@@ -77,9 +98,28 @@ const authOptions = {
               isOAuthUser: dbUser.isOAuthUser,
               passwordSetupComplete: dbUser.passwordSetupComplete
             };
+          } else {
+            console.log('User not found in database, using OAuth data');
+            token.user = {
+              id: user.id,
+              username: user.email.split('@')[0],
+              email: user.email,
+              fullName: user.name,
+              isOAuthUser: true,
+              passwordSetupComplete: false
+            };
           }
         } catch (error) {
           console.error('Error in JWT callback:', error);
+          // Fallback to basic user data
+          token.user = {
+            id: user.id,
+            username: user.email?.split('@')[0] || 'user',
+            email: user.email,
+            fullName: user.name,
+            isOAuthUser: true,
+            passwordSetupComplete: false
+          };
         }
       }
       
@@ -98,25 +138,51 @@ const authOptions = {
   },
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: '/login',
     error: '/login',
   },
+  events: {
+    async signIn({ user, account, profile, isNewUser }) {
+      console.log('User signed in:', { email: user.email, isNewUser, provider: account?.provider });
+    },
+    async signOut({ session, token }) {
+      console.log('User signed out:', { email: session?.user?.email });
+    },
+  },
   debug: process.env.NODE_ENV === 'development',
   logger: {
     error(code, metadata) {
       console.error('NextAuth Error:', code, metadata);
+      if (code === 'OAUTH_CALLBACK_ERROR') {
+        console.error('OAuth Callback Error Details:', metadata.error);
+      }
     },
     warn(code) {
       console.warn('NextAuth Warning:', code);
     },
     debug(code, metadata) {
-      console.log('NextAuth Debug:', code, metadata);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('NextAuth Debug:', code, metadata);
+      }
     }
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production'
+      }
+    },
   }
 };
 
 const handler = NextAuth(authOptions);
 
-export { handler as GET, handler as POST };
+export { authOptions, handler as GET, handler as POST };
+

@@ -24,9 +24,28 @@ function LoginContent() {
   useEffect(() => {
     setTimeout(() => setMounted(true), 100);
     
-    // Check for success message from registration completion
+    // Check for error messages from OAuth or other sources
+    const error = searchParams.get('error');
     const message = searchParams.get('message');
-    if (message === 'setup-complete') {
+    
+    if (error) {
+      switch (error) {
+        case 'OAuthCallback':
+          setError('Google sign-in encountered a network issue. Please try again.');
+          break;
+        case 'OAuthAccountNotLinked':
+          setError('This email is already associated with another account. Please use a different sign-in method.');
+          break;
+        case 'OAuthCreateAccount':
+          setError('Unable to create account. Please try again.');
+          break;
+        case 'OAuthSignin':
+          setError('Google sign-in failed. Please try again.');
+          break;
+        default:
+          setError('Authentication failed. Please try again.');
+      }
+    } else if (message === 'setup-complete') {
       toast.success('Registration completed successfully! You can now sign in with your credentials.');
     }
   }, [searchParams]);
@@ -44,21 +63,36 @@ function LoginContent() {
       setGoogleLoading(true);
       setError('');
       
+      console.log('Initiating Google sign-in...');
       const result = await signIn('google', {
         redirect: false,
         callbackUrl: '/'
       });
 
+      console.log('Google sign-in result:', result);
+
       if (result?.error) {
-        setError('Google sign-in failed. Please try again.');
         console.error('Google sign-in error:', result.error);
+        switch (result.error) {
+          case 'OAuthCallback':
+            setError('Network timeout during Google sign-in. Please check your internet connection and try again.');
+            break;
+          case 'OAuthAccountNotLinked':
+            setError('This Google account is already linked to another user. Please use a different account.');
+            break;
+          default:
+            setError(`Google sign-in failed: ${result.error}. Please try again.`);
+        }
       } else if (result?.ok) {
-        // Success - NextAuth will handle redirects via middleware
         toast.success('Signed in successfully!');
+        // Give time for session to be established
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
       }
     } catch (error) {
-      console.error('Google sign-in error:', error);
-      setError('Google sign-in failed. Please try again.');
+      console.error('Google sign-in exception:', error);
+      setError('Google sign-in failed due to a network issue. Please try again.');
     } finally {
       setGoogleLoading(false);
     }
