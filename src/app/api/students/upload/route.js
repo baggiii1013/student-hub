@@ -70,6 +70,13 @@ export async function POST(request) {
         return createErrorResponse('The spreadsheet appears to be empty', 400);
       }
 
+      // Check for very large files that might timeout on Vercel
+      if (data.length > 1000) {
+        return createErrorResponse('File too large. Please upload files with 1000 or fewer records to avoid timeouts.', 400);
+      }
+
+      console.log(`Processing ${data.length} rows from spreadsheet`);
+
     } catch (parseError) {
       console.error('Error parsing file:', parseError);
       return createErrorResponse('Error parsing the file. Please ensure it\'s a valid Excel or CSV file.', 400);
@@ -78,10 +85,13 @@ export async function POST(request) {
     // Validate and process data
     const processedStudents = [];
     const errors = [];
-    const skipped = [];
+    const validStudents = [];
     let updated = 0;
     let created = 0;
 
+    console.log('Starting data validation and processing...');
+
+    // First pass: validate all data
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
       const rowNumber = i + 2; // Excel row numbers start from 1, plus header row
@@ -134,25 +144,7 @@ export async function POST(request) {
           studentData.btechDiploma = 'BTech'; // Default value
         }
 
-        // Check if student already exists
-        const existingStudent = await Student.findOne({ ugNumber: studentData.ugNumber });
-
-        if (existingStudent) {
-          // Update existing student
-          await Student.findByIdAndUpdate(existingStudent._id, studentData);
-          updated++;
-        } else {
-          // Create new student
-          const newStudent = new Student(studentData);
-          await newStudent.save();
-          created++;
-        }
-
-        processedStudents.push({
-          ugNumber: studentData.ugNumber,
-          name: studentData.name,
-          action: existingStudent ? 'updated' : 'created'
-        });
+        validStudents.push(studentData);
 
       } catch (error) {
         console.error(`Error processing row ${rowNumber}:`, error);
@@ -164,6 +156,98 @@ export async function POST(request) {
       }
     }
 
+    console.log(`Validated ${validStudents.length} students, ${errors.length} errors`);
+
+    if (validStudents.length === 0) {
+      return createErrorResponse('No valid students found to process', 400);
+    }
+
+    // Second pass: bulk database operations
+    console.log('Starting bulk database operations...');
+
+    try {
+      // Get all existing UG numbers in one query
+      const ugNumbers = validStudents.map(s => s.ugNumber);
+      const existingStudents = await Student.find({ 
+        ugNumber: { $in: ugNumbers } 
+      }).select('ugNumber name').lean();
+      
+      const existingUgNumbers = new Set(existingStudents.map(s => s.ugNumber));
+      
+      console.log(`Found ${existingUgNumbers.size} existing students`);
+
+      // Separate into updates and creates
+      const studentsToUpdate = [];
+      const studentsToCreate = [];
+
+      validStudents.forEach(studentData => {
+        // Generate search keywords for bulk operations
+        const keywords = [
+          studentData.name?.toLowerCase(),
+          studentData.ugNumber?.toLowerCase(),
+          studentData.branch?.toLowerCase(),
+          studentData.division?.toLowerCase(),
+          studentData.mftName?.toLowerCase(),
+          studentData.enrollmentNo?.toLowerCase()
+        ].filter(Boolean);
+        
+        studentData.searchKeywords = keywords;
+
+        if (existingUgNumbers.has(studentData.ugNumber)) {
+          studentsToUpdate.push(studentData);
+        } else {
+          studentsToCreate.push(studentData);
+        }
+      });
+
+      console.log(`Will create ${studentsToCreate.length}, update ${studentsToUpdate.length}`);
+
+      // Bulk create new students
+      if (studentsToCreate.length > 0) {
+        console.log('Bulk creating new students...');
+        const createResult = await Student.insertMany(studentsToCreate, { ordered: false });
+        created = createResult.length;
+        console.log(`Created ${created} students`);
+        
+        // Add to processed list
+        createResult.forEach(student => {
+          processedStudents.push({
+            ugNumber: student.ugNumber,
+            name: student.name,
+            action: 'created'
+          });
+        });
+      }
+
+      // Bulk update existing students
+      if (studentsToUpdate.length > 0) {
+        console.log('Bulk updating existing students...');
+        const bulkOps = studentsToUpdate.map(studentData => ({
+          updateOne: {
+            filter: { ugNumber: studentData.ugNumber },
+            update: { $set: studentData }
+          }
+        }));
+
+        const updateResult = await Student.bulkWrite(bulkOps);
+        updated = updateResult.modifiedCount;
+        console.log(`Updated ${updated} students`);
+
+        // Add to processed list
+        studentsToUpdate.forEach(studentData => {
+          processedStudents.push({
+            ugNumber: studentData.ugNumber,
+            name: studentData.name,
+            action: 'updated'
+          });
+        });
+      }
+
+    } catch (dbError) {
+      console.error('Database operation error:', dbError);
+      return createErrorResponse('Database error during bulk operations: ' + dbError.message, 500);
+    }
+
     const responseData = {
       message: 'Spreadsheet processed successfully',
       summary: {
@@ -171,8 +255,7 @@ export async function POST(request) {
         processed: processedStudents.length,
         created,
         updated,
-        errors: errors.length,
-        skipped: skipped.length
+        errors: errors.length
       },
       processedStudents: processedStudents.slice(0, 10), // Show first 10 for preview
       errors: errors.slice(0, 5), // Show first 5 errors

@@ -89,18 +89,21 @@ studentSchema.index({
   mftName: 'text'
 });
 
-// Pre-save hook to generate search keywords
+// Pre-save hook to generate search keywords - only for individual saves
 studentSchema.pre('save', function(next) {
-  const keywords = [
-    this.name?.toLowerCase(),
-    this.ugNumber?.toLowerCase(),
-    this.branch?.toLowerCase(),
-    this.division?.toLowerCase(),
-    this.mftName?.toLowerCase(),
-    this.enrollmentNo?.toLowerCase()
-  ].filter(Boolean);
-  
-  this.searchKeywords = keywords;
+  // Skip for bulk operations to improve performance
+  if (this.isNew || this.isModified()) {
+    const keywords = [
+      this.name?.toLowerCase(),
+      this.ugNumber?.toLowerCase(),
+      this.branch?.toLowerCase(),
+      this.division?.toLowerCase(),
+      this.mftName?.toLowerCase(),
+      this.enrollmentNo?.toLowerCase()
+    ].filter(Boolean);
+    
+    this.searchKeywords = keywords;
+  }
   next();
 });
 
