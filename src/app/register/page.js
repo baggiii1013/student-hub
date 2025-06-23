@@ -140,9 +140,9 @@ function RegisterContent() {
     }
 
     // Validate username (no spaces, special characters, minimum length)
-    const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
+    const usernameRegex = /^[a-zA-Z0-9]{3,20}$/;
     if (!usernameRegex.test(formData.username)) {
-      toast.error('Username must be 3-20 characters long and contain only letters, numbers, hyphens, and underscores');
+      toast.error('Username must be 3-20 characters long and contain only letters, numbers and no special characters ');
       setLoading(false);
       return;
     }
