@@ -207,7 +207,7 @@ export default function Home() {
                     </div>
                     <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">No Student Found</h3>
                     <p className="text-gray-300 text-sm sm:text-base">
-                      No student found with UG number "{searchQuery.trim()}". 
+                      No student found with UG number &quot;{searchQuery.trim()}&quot;. 
                       Please check the UG number and try again.
                     </p>
                   </div>
