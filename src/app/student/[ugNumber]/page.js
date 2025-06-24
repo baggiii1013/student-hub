@@ -245,18 +245,7 @@ export default function StudentProfilePage() {
                       Contact Information
                     </h2>
                     <div className="space-y-3">
-                      {student.email && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Email:</span>
-                          <span className="text-white break-all">{student.email}</span>
-                        </div>
-                      )}
-                      {student.phoneNumber && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Phone:</span>
-                          <span className="text-white">{student.phoneNumber}</span>
-                        </div>
-                      )}
+                      {/* Email and Phone Number are hidden for privacy */}
                       {student.roomNumber && (
                         <div className="flex justify-between">
                           <span className="text-gray-400">Room Number:</span>

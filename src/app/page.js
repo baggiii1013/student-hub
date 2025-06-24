@@ -10,8 +10,6 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
-  const [pagination, setPagination] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -20,7 +18,7 @@ export default function Home() {
     setMounted(true);
   }, []);
   
-  const handleSearch = async (e, page = 1) => {
+  const handleSearch = async (e) => {
     e && e.preventDefault();
     if (!searchQuery.trim()) return;
 
@@ -29,37 +27,20 @@ export default function Home() {
     try {
       const response = await studentAPI.searchStudents({
         query: searchQuery.trim(),
-        page: page,
-        limit: 50
+        page: 1,
+        limit: 10  // Since we expect only 1 exact match, smaller limit is fine
       });
       
       if (response.success) {
-        if (page === 1) {
-          setSearchResults(response.data);
-          setCurrentPage(1);
-        } else {
-          setSearchResults(prev => [...prev, ...response.data]);
-          setCurrentPage(page);
-        }
-        setPagination(response.pagination);
+        setSearchResults(response.data);
       } else {
         setSearchResults([]);
-        setPagination(null);
-        setCurrentPage(1);
       }
     } catch (error) {
-      console.error('Error searching students:', error);
+      console.error('Error searching for student:', error);
       setSearchResults([]);
-      setPagination(null);
-      setCurrentPage(1);
     } finally {
       setIsSearching(false);
-    }
-  };
-
-  const handleLoadMore = () => {
-    if (pagination && pagination.hasNextPage) {
-      handleSearch(null, currentPage + 1);
     }
   };
 
@@ -163,11 +144,11 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`text-center transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mb-8 sm:mb-12`}>
             <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse">
-              Find Your Peers
+              Find Student Info
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
               Connect, discover, and collaborate with students across campus. 
-              Search by UG number to find your peers instantly.
+              Enter the exact UG number to find student information.
             </p>
           </div>
         </div>
@@ -186,7 +167,7 @@ export default function Home() {
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Enter UG number (e.g., UG/2023/001) or student name..."
+                          placeholder="Enter exact UG number (e.g., UG/2023/001)..."
                           className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-3.5 md:py-4 bg-gray-700/50 border border-gray-600 rounded-lg sm:rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base md:text-lg min-h-[44px]"
                           style={{fontSize: '16px'}}
                         />
@@ -207,7 +188,7 @@ export default function Home() {
                             <span className="text-sm sm:text-base">Searching...</span>
                           </div>
                         ) : (
-                          'Search Students'
+                          'Find Student'
                         )}
                       </button>
                     </div>
@@ -216,14 +197,33 @@ export default function Home() {
               </form>
 
               {/* Search Results */}
+              {searchQuery.trim() && searchResults.length === 0 && !isSearching && (
+                <div className="text-center py-8 sm:py-12">
+                  <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 sm:p-8 border border-gray-700 max-w-md mx-auto">
+                    <div className="w-16 h-16 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.467-.881-6.077-2.33l-.853-.854A7.962 7.962 0 016 6c0-2.21.895-4.21 2.343-5.657L9.172 1.172a4 4 0 015.656 0L15.657.343A7.962 7.962 0 0118 6a7.96 7.96 0 01-.93 3.77l-.854.853z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">No Student Found</h3>
+                    <p className="text-gray-300 text-sm sm:text-base">
+                      No student found with UG number "{searchQuery.trim()}". 
+                      Please check the UG number and try again.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               {searchResults.length > 0 && (
                 <div className="space-y-4 sm:space-y-6">
                   <h2 className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 px-1 sm:px-2">
                     <span className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs sm:text-sm md:text-base font-bold">{searchResults.length}</span>
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      </svg>
                     </span>
                     <span className="text-sm sm:text-base md:text-lg">
-                      {pagination ? `Showing ${searchResults.length} of ${pagination.totalStudents} Results` : 'Search Results'}
+                      Student Found
                     </span>
                   </h2>
                   <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
@@ -281,31 +281,6 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                  
-                  {/* Load More Button */}
-                  {pagination && pagination.hasNextPage && (
-                    <div className="flex justify-center mt-6 sm:mt-8">
-                      <button
-                        onClick={handleLoadMore}
-                        disabled={isSearching}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                      >
-                        {isSearching ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Loading...
-                          </>
-                        ) : (
-                          <>
-                            <span>Load More ({pagination.totalStudents - searchResults.length} remaining)</span>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                            </svg>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
             </div>

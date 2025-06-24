@@ -44,21 +44,35 @@ export async function GET(request) {
     // Build search filter
     const filter = {};
     
-    // Text search across multiple fields (handle both formats)
+    // Only search by exact UG number match (case-insensitive)
     if (query) {
+      const trimmedQuery = query.trim();
+      if (!trimmedQuery) {
+        // Return empty results for empty query
+        return createResponse({
+          success: true,
+          data: [],
+          pagination: {
+            currentPage: page,
+            totalPages: 0,
+            totalStudents: 0,
+            hasNextPage: false,
+            hasPrevPage: false
+          },
+          filters: {
+            query,
+            branch,
+            division,
+            batch,
+            btechDiploma
+          }
+        });
+      }
+
+      // Exact match for UG number only (both field formats)
       filter.$or = [
-        { "Name Of Student": { $regex: query, $options: 'i' } },
-        { "UG Number": { $regex: query, $options: 'i' } },
-        { "ENROLLMENT Number": { $regex: query, $options: 'i' } },
-        { "Branch": { $regex: query, $options: 'i' } },
-        { "Division": { $regex: query, $options: 'i' } },
-        { "MFT Name": { $regex: query, $options: 'i' } },
-        { name: { $regex: query, $options: 'i' } },
-        { ugNumber: { $regex: query, $options: 'i' } },
-        { enrollmentNo: { $regex: query, $options: 'i' } },
-        { branch: { $regex: query, $options: 'i' } },
-        { division: { $regex: query, $options: 'i' } },
-        { mftName: { $regex: query, $options: 'i' } }
+        { "UG Number": { $regex: `^${trimmedQuery}$`, $options: 'i' } },
+        { ugNumber: { $regex: `^${trimmedQuery}$`, $options: 'i' } }
       ];
     }
 
