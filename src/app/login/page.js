@@ -27,9 +27,20 @@ function LoginContent() {
     // Check for error messages from OAuth or other sources
     const error = searchParams.get('error');
     const message = searchParams.get('message');
+    const email = searchParams.get('email');
     
     if (error) {
       switch (error) {
+        case 'user_not_registered':
+          setError(`This email (${email || 'your email'}) is not registered. Please register with Google OAuth.`);
+          // Auto-redirect to register page after 3 seconds
+          setTimeout(() => {
+            window.location.href = `/register${email ? `?email=${encodeURIComponent(email)}` : ''}`;
+          }, 3000);
+          break;
+        case 'database_error':
+          setError('Database connection error. Please try again later.');
+          break;
         case 'OAuthCallback':
           setError('Google sign-in encountered a network issue. Please try again.');
           break;
@@ -47,6 +58,8 @@ function LoginContent() {
       }
     } else if (message === 'setup-complete') {
       toast.success('Registration completed successfully! You can now sign in with your credentials.');
+    } else if (message === 'registration-complete') {
+      toast.success('Account created successfully! You can now sign in.');
     }
   }, [searchParams]);
 
@@ -89,6 +102,9 @@ function LoginContent() {
         setTimeout(() => {
           window.location.href = '/';
         }, 1000);
+      } else if (result?.url) {
+        // Handle redirect
+        window.location.href = result.url;
       }
     } catch (error) {
       console.error('Google sign-in exception:', error);

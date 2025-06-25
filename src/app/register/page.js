@@ -1,6 +1,5 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
 import { authAPI } from '@/lib/api';
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -20,7 +19,6 @@ function RegisterContent() {
   const [step, setStep] = useState(1); // 1: Google auth, 2: Set password
   const [userEmail, setUserEmail] = useState('');
   
-  const { login } = useAuth();
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,7 +26,7 @@ function RegisterContent() {
   useEffect(() => {
     setTimeout(() => setMounted(true), 100);
     
-    // Check if user came from OAuth and needs to complete setup
+    // Check if user came from OAuth login and needs to complete setup
     const stepParam = searchParams.get('step');
     const emailParam = searchParams.get('email');
     
@@ -42,13 +40,16 @@ function RegisterContent() {
   useEffect(() => {
     // Handle OAuth callback - check if user completed OAuth but needs password setup
     if (session && session.user && !userEmail) {
+      console.log('Session detected:', session.user);
       // Check if this user needs to complete setup
       if (session.user.isOAuthUser && !session.user.passwordSetupComplete) {
+        console.log('User needs to complete OAuth setup');
         setUserEmail(session.user.email);
         setStep(2);
-        toast.info('Please complete your account setup by choosing a username and password.');
+        toast.info('Google authentication successful! Please complete your account setup.');
       } else if (session.user.passwordSetupComplete) {
         // User is fully set up, redirect to home
+        console.log('User setup is complete, redirecting to home');
         router.push('/');
       }
     }
@@ -56,8 +57,6 @@ function RegisterContent() {
 
   const checkUserSetupStatus = async (email) => {
     try {
-      // You could call an API to check if user setup is complete
-      // For now, we'll assume any OAuth user without a password needs setup
       setUserEmail(email);
       setStep(2);
       toast.info('Please complete your account setup by choosing a username and password.');
@@ -77,34 +76,28 @@ function RegisterContent() {
     try {
       setGoogleLoading(true);
       
-      console.log('Starting Google sign-in process...');
+      console.log('Starting Google sign-in process for registration...');
       
-      // Test the providers first
-      const providers = await fetch('/api/auth/providers').then(r => r.json());
-      console.log('Available providers:', providers);
-      
-      if (!providers.google) {
-        throw new Error('Google provider not available');
-      }
-      
-      console.log('Calling signIn with google provider...');
       const result = await signIn('google', {
         redirect: false,
         callbackUrl: '/register'
       });
 
-      console.log('Sign-in result:', result);
+      console.log('Google sign-in result:', result);
 
       if (result?.error) {
         console.error('Sign-in error details:', result.error);
-        toast.error(`Google sign-up failed: ${result.error}`);
+        toast.error(`Google sign-up failed: ${result.error}. Please try again.`);
       } else if (result?.ok) {
-        console.log('Sign-in successful, waiting for session update...');
-        toast.success('Google account connected successfully!');
-        // The useEffect will handle setting step 2 when session updates
+        console.log('Google sign-in successful, waiting for session...');
+        toast.success('Google authentication successful! Checking your account status...');
+        // The useEffect will handle the next steps when session updates
+      } else if (result?.url) {
+        console.log('Redirecting to:', result.url);
+        window.location.href = result.url;
       } else {
         console.log('Unexpected result:', result);
-        toast.error('Unexpected response from Google sign-in');
+        toast.info('Google authentication in progress...');
       }
     } catch (error) {
       console.error('Google sign-up error:', error);
@@ -218,15 +211,15 @@ function RegisterContent() {
             <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-700">
               
               {step === 1 ? (
-                // Step 1: Google Authentication
+                // Step 1: Google OAuth Registration Only
                 <div className="space-y-4 sm:space-y-6">
-                  <div className="text-center mb-6">
-                    <p className="text-gray-300 text-sm mb-4">
-                      We use Google authentication for security. After connecting your Google account, you&apos;ll be required to set up your own password for additional security.
+                  <div className="text-center mb-4">
+                    <p className="text-gray-300 text-sm mb-3">
+                      Sign up with Google to create your Student Hub account. You&apos;ll be able to set your username and password after authentication.
                     </p>
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-4">
-                      <p className="text-yellow-400 text-xs sm:text-sm font-medium">
-                        ⚠️ Password Required: You must create your own password after Google authentication
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4">
+                      <p className="text-blue-400 text-xs sm:text-sm font-medium">
+                        🔒 Secure Registration: Only Google OAuth is supported for new accounts
                       </p>
                     </div>
                   </div>
@@ -251,7 +244,7 @@ function RegisterContent() {
                           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                         </svg>
-                        Continue with Google
+                        Sign up with Google
                       </>
                     )}
                   </button>

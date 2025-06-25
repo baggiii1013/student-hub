@@ -24,7 +24,9 @@ export function AuthProvider({ children }) {
         id: session.user.id,
         username: session.user.username,
         email: session.user.email,
-        fullName: session.user.fullName
+        fullName: session.user.fullName,
+        isOAuthUser: session.user.isOAuthUser,
+        passwordSetupComplete: session.user.passwordSetupComplete
       });
       setLoading(false);
     } else {

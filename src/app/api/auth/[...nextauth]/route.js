@@ -39,33 +39,46 @@ const authOptions = {
           const existingUser = await User.findOne({ email: user.email });
           
           if (!existingUser) {
-            console.log('Creating new OAuth user for', user.email);
-            // Create a new user in our User model
-            const newUser = new User({
-              username: user.email.split('@')[0] + '_temp', // Temporary username
-              email: user.email,
-              fullName: user.name,
-              isOAuthUser: true,
-              oauthProvider: 'google',
-              passwordSetupComplete: false
-            });
-            
-            const savedUser = await newUser.save();
-            console.log('New OAuth user created successfully:', savedUser._id);
+            console.log('New Google user, creating temporary OAuth user for', user.email);
+            // Create a temporary OAuth user that needs setup completion
+            try {
+              const newUser = new User({
+                username: user.email.split('@')[0] + '_temp_' + Date.now(), // Temporary unique username
+                email: user.email,
+                fullName: user.name,
+                isOAuthUser: true,
+                oauthProvider: 'google',
+                passwordSetupComplete: false
+                // No password required since isOAuthUser=true and passwordSetupComplete=false
+              });
+              
+              await newUser.save();
+              console.log('Temporary OAuth user created for setup:', newUser._id);
+            } catch (dbError) {
+              console.error('Error creating temporary OAuth user:', dbError);
+              // Continue anyway to allow the OAuth flow
+            }
+            return true;
           } else {
             console.log('Existing user found:', existingUser.email, 'Setup complete:', existingUser.passwordSetupComplete);
+            
+            // If user exists but is OAuth and hasn't completed setup, allow sign-in for setup completion
             if (existingUser.isOAuthUser && !existingUser.passwordSetupComplete) {
-              // User exists but hasn't completed password setup
-              // We'll handle the redirect in the frontend based on session data
-              console.log('User needs to complete setup');
+              console.log('OAuth user needs to complete setup');
+              return true;
             }
+            
+            // If user exists and has completed setup (either OAuth or regular), allow sign-in
+            if (existingUser.passwordSetupComplete || !existingUser.isOAuthUser) {
+              return true;
+            }
+            
+            return true;
           }
-          
-          return true;
         } catch (error) {
           console.error('Error during sign in:', error);
           console.error('Error stack:', error.stack);
-          // Still allow sign in even if our custom logic fails
+          // Allow sign-in even if our custom logic fails to prevent blocking users
           return true;
         }
       }
@@ -99,27 +112,14 @@ const authOptions = {
               passwordSetupComplete: dbUser.passwordSetupComplete
             };
           } else {
-            console.log('User not found in database, using OAuth data');
-            token.user = {
-              id: user.id,
-              username: user.email.split('@')[0],
-              email: user.email,
-              fullName: user.name,
-              isOAuthUser: true,
-              passwordSetupComplete: false
-            };
+            console.log('User not found in database during JWT callback');
+            // Don't create a token for non-registered users
+            return null;
           }
         } catch (error) {
           console.error('Error in JWT callback:', error);
-          // Fallback to basic user data
-          token.user = {
-            id: user.id,
-            username: user.email?.split('@')[0] || 'user',
-            email: user.email,
-            fullName: user.name,
-            isOAuthUser: true,
-            passwordSetupComplete: false
-          };
+          // Return null to prevent token creation on database errors
+          return null;
         }
       }
       
@@ -147,6 +147,21 @@ const authOptions = {
   events: {
     async signIn({ user, account, profile, isNewUser }) {
       console.log('User signed in:', { email: user.email, isNewUser, provider: account?.provider });
+      
+      // If it's a Google sign-in attempt but user doesn't exist, we need to redirect to register
+      if (account?.provider === 'google') {
+        try {
+          await connectDB();
+          const existingUser = await User.findOne({ email: user.email });
+          if (!existingUser) {
+            // This won't actually execute because the signIn callback will block it
+            // But it's here for completeness
+            console.log('User not registered, should redirect to register page');
+          }
+        } catch (error) {
+          console.error('Error in signIn event:', error);
+        }
+      }
     },
     async signOut({ session, token }) {
       console.log('User signed out:', { email: session?.user?.email });

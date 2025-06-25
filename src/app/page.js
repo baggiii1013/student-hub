@@ -16,7 +16,12 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Check if user is OAuth and needs to complete setup
+    if (user && user.isOAuthUser && !user.passwordSetupComplete) {
+      router.push('/register?step=2');
+    }
+  }, [user, router]);
   
   const handleSearch = async (e) => {
     e && e.preventDefault();

@@ -37,13 +37,6 @@ export const authAPI = {
     });
   },
   
-  register: async (userData) => {
-    return apiCall('/users/register', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    });
-  },
-  
   completeOAuthSetup: async (setupData) => {
     return apiCall('/users/complete-setup', {
       method: 'POST',
