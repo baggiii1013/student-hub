@@ -1,5 +1,6 @@
 'use client';
 
+
 import Hyperspeed from '@/components/ui/Hyperspeed';
 import { useAuth } from '@/contexts/AuthContext';
 import { studentAPI } from '@/lib/api';

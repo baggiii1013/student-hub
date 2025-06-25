@@ -1,3 +1,4 @@
+import Footer from "@/components/Footer";
 import { NextAuthProvider } from "@/components/NextAuthProvider";
 import { ToastProvider } from "@/components/ToastProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -26,13 +27,16 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <SpeedInsights/>
         <Analytics/>
         <NextAuthProvider>
           <AuthProvider>
-            {children}
+            <div className="flex-1">
+              {children}
+            </div>
+            <Footer />
             <ToastProvider />
           </AuthProvider>
         </NextAuthProvider>
