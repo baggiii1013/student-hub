@@ -53,6 +53,9 @@ function LoginContent() {
         case 'OAuthSignin':
           setError('Google sign-in failed. Please try again.');
           break;
+        case 'AccessDenied':
+          setError('Access denied: Please use your Parul University email address (@paruluniversity.ac.in)');
+          break;
         default:
           setError('Authentication failed. Please try again.');
       }
@@ -133,7 +136,9 @@ function LoginContent() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      if (error.message.includes('Invalid email or password')) {
+      if (error.message.includes('Only @paruluniversity.ac.in email addresses are allowed')) {
+        setError('Access denied: Please use your Parul University email address (@paruluniversity.ac.in)');
+      } else if (error.message.includes('Invalid email or password')) {
         setError('Invalid email or password. Please try again.');
       } else {
         setError(error.message || 'Login failed. Please try again.');
@@ -161,7 +166,12 @@ function LoginContent() {
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
               Student Hub
             </h1>
-            <p className="text-gray-300 text-xs sm:text-sm md:text-base">Welcome back! Please sign in to continue.</p>
+            <p className="text-gray-300 text-xs sm:text-sm md:text-base">Welcome back! Please sign in with your Parul University account.</p>
+            <div className="mt-3 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+              <p className="text-blue-400 text-xs sm:text-sm">
+                🏫 Only @paruluniversity.ac.in email addresses are allowed
+              </p>
+            </div>
           </div>
 
           {/* Login Form */}
@@ -186,7 +196,7 @@ function LoginContent() {
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full px-3 sm:px-4 py-3 sm:py-3.5 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base min-h-[44px]"
-                    placeholder="Enter your email"
+                    placeholder="Enter your @paruluniversity.ac.in email"
                     style={{fontSize: '16px'}}
                   />
                 </div>

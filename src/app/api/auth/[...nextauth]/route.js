@@ -30,6 +30,12 @@ const authOptions = {
       console.log('SignIn callback triggered', { user: user.email, provider: account?.provider });
       
       if (account?.provider === 'google') {
+        // Check if email is from the required domain
+        if (!user.email.endsWith('@paruluniversity.ac.in')) {
+          console.log('Access denied: Email not from paruluniversity.ac.in domain:', user.email);
+          return false; // Reject sign-in
+        }
+        
         try {
           console.log('Connecting to database...');
           await connectDB();

@@ -14,6 +14,11 @@ export async function POST(request) {
       return createErrorResponse('Email, username, and password are required!', 400);
     }
 
+    // Check if email is from the required domain
+    if (!email.endsWith('@paruluniversity.ac.in')) {
+      return createErrorResponse('Access denied: Only @paruluniversity.ac.in email addresses are allowed', 403);
+    }
+
     // Password strength validation
     if (password.length < 6) {
       return createErrorResponse('Password must be at least 6 characters long', 400);

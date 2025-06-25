@@ -87,7 +87,11 @@ function RegisterContent() {
 
       if (result?.error) {
         console.error('Sign-in error details:', result.error);
-        toast.error(`Google sign-up failed: ${result.error}. Please try again.`);
+        if (result.error === 'AccessDenied') {
+          toast.error('Access denied: Please use your Parul University email address (@paruluniversity.ac.in)');
+        } else {
+          toast.error(`Google sign-up failed: ${result.error}. Please try again.`);
+        }
       } else if (result?.ok) {
         console.log('Google sign-in successful, waiting for session...');
         toast.success('Google authentication successful! Checking your account status...');
@@ -156,7 +160,11 @@ function RegisterContent() {
       
     } catch (error) {
       console.error('Setup completion error:', error);
-      if (error.message.includes('Username already taken')) {
+      if (error.message.includes('Only @paruluniversity.ac.in email addresses are allowed')) {
+        toast.error('Access denied: Please use your Parul University email address (@paruluniversity.ac.in)');
+        setStep(1);
+        setUserEmail('');
+      } else if (error.message.includes('Username already taken')) {
         toast.error('This username is already taken. Please choose a different username.');
       } else if (error.message.includes('User not found')) {
         toast.error('Session expired. Please start the registration process again.');
@@ -215,11 +223,11 @@ function RegisterContent() {
                 <div className="space-y-4 sm:space-y-6">
                   <div className="text-center mb-4">
                     <p className="text-gray-300 text-sm mb-3">
-                      Sign up with Google to create your Student Hub account. You&apos;ll be able to set your username and password after authentication.
+                      Sign up with your Parul University Google account to create your Student Hub account.
                     </p>
                     <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4">
                       <p className="text-blue-400 text-xs sm:text-sm font-medium">
-                        🔒 Secure Registration: Only Google OAuth is supported for new accounts
+                        🏫 University Access Only: Only @paruluniversity.ac.in email addresses are allowed
                       </p>
                     </div>
                   </div>
