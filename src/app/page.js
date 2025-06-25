@@ -1,8 +1,10 @@
 'use client';
 
 
+import RoleProtected from '@/components/RoleProtected';
 import Hyperspeed from '@/components/ui/Hyperspeed';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRole } from '@/hooks/useRole';
 import { studentAPI } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -13,6 +15,7 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState([]);
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
+  const { role, canUpload } = useRole();
   const router = useRouter();
   const hyperspeedRef = useRef(null);
 
@@ -120,13 +123,15 @@ export default function Home() {
               </h1>
               {user ? (
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-300 text-sm">Welcome, {user.username}!</span>
-                  <button
-                    onClick={() => router.push('/upload')}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-                  >
-                    Upload Data
-                  </button>
+                  <span className="text-gray-300 text-sm">Welcome, {user.username}! ({role})</span>
+                  <RoleProtected requiredRole="admin">
+                    <button
+                      onClick={() => router.push('/upload')}
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                    >
+                      Upload Data
+                    </button>
+                  </RoleProtected>
                   <button
                     onClick={() => router.push(`/profile/${user.username}`)}
                     className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
