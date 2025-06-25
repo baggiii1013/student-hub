@@ -1,6 +1,7 @@
 'use client';
 
 
+import RoleIndicator from '@/components/RoleIndicator';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { useParams, useRouter } from 'next/navigation';
@@ -120,6 +121,12 @@ export default function ProfilePage() {
               <div className="flex justify-between">
                 <span className="text-gray-900">Email:</span>
                 <span className="font-medium text-blue-700">{profile.email}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-900">Role & Permissions:</span>
+                <div className="flex justify-end">
+                  {profile.role && <RoleIndicator role={profile.role} size="sm" showPermissions={true} variant="badge" />}
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-900">Account Type:</span>

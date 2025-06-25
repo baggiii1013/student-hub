@@ -1,7 +1,10 @@
 'use client';
 
 
+import RoleIndicator from '@/components/RoleIndicator';
 import RoleProtected from '@/components/RoleProtected';
+import RoleStatsCard from '@/components/RoleStatsCard';
+import UserProfileSection from '@/components/UserProfileSection';
 import Hyperspeed from '@/components/ui/Hyperspeed';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRole } from '@/hooks/useRole';
@@ -122,30 +125,33 @@ export default function Home() {
                 Student Hub
               </h1>
               {user ? (
-                <div className="flex items-center gap-4">
-                  <span className="text-gray-300 text-sm">Welcome, {user.username}! ({role})</span>
-                  <RoleProtected requiredRole="admin">
+                <div className="flex items-center gap-6">
+                  <UserProfileSection variant="horizontal" />
+                  <div className="flex items-center gap-3">
+                    <RoleProtected requiredRole="admin">
+                      <button
+                        onClick={() => router.push('/upload')}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                      >
+                        Upload Data
+                      </button>
+                    </RoleProtected>
                     <button
-                      onClick={() => router.push('/upload')}
-                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                      onClick={() => router.push(`/profile/${user.username}`)}
+                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
                     >
-                      Upload Data
+                      Profile
                     </button>
-                  </RoleProtected>
-                  <button
-                    onClick={() => router.push(`/profile/${user.username}`)}
-                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
-                  >
-                    Profile
-                  </button>
-                  <button
-                    onClick={logout}
-                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
-                  >
-                    Logout
-                  </button>
+                    <button
+                      onClick={logout}
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
+                    >
+                      Logout
+                    </button>
+                  </div>
                 </div>
-              ) : (<div></div>
+              ) : (
+                <div></div>
               )}
             </div>
           </div>
@@ -163,6 +169,15 @@ export default function Home() {
             </p>
           </div>
         </div>
+
+        {/* Role Stats Section */}
+        {user && (
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+            <div className={`max-w-2xl mx-auto transform transition-all duration-1000 delay-150 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+              <RoleStatsCard />
+            </div>
+          </div>
+        )}
 
         {/* Search Section */}
         <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12">

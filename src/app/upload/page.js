@@ -3,6 +3,7 @@
 
 import ProtectedRoute from '@/components/ProtectedRoute';
 import RoleProtected from '@/components/RoleProtected';
+import UserProfileSection from '@/components/UserProfileSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRole } from '@/hooks/useRole';
 import { api } from '@/lib/api';
@@ -127,13 +128,18 @@ function UploadPageContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
-            Upload Student Data
-          </h1>
-          <p className="text-gray-300 text-lg">
-            Upload a spreadsheet to bulk import or update student records
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <div className="text-center sm:text-left mb-4 sm:mb-0">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+              Upload Student Data
+            </h1>
+            <p className="text-gray-300 text-lg">
+              Upload a spreadsheet to bulk import or update student records
+            </p>
+          </div>
+          <div className="flex justify-center sm:justify-end">
+            <UserProfileSection variant="horizontal" />
+          </div>
         </div>
 
         {/* Template Download */}
