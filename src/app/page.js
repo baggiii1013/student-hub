@@ -120,7 +120,7 @@ export default function Home() {
               </h1>
               {user ? (
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-300 text-sm">Welcome, {user.username}! {user.role}</span>
+                  <span className="text-gray-300 text-sm">Welcome, {user.username}!</span>
                   <button
                     onClick={() => router.push('/upload')}
                     className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
