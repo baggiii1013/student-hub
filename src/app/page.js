@@ -140,21 +140,7 @@ export default function Home() {
                     Logout
                   </button>
                 </div>
-              ) : (
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => router.push('/login')}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => router.push('/register')}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-                  >
-                    Register
-                  </button>
-                </div>
+              ) : (<div></div>
               )}
             </div>
           </div>
