@@ -64,7 +64,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 relative">
+    <div className="min-h-[97vh] bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 relative">
       {/* Hyperspeed background */}
       <div className="fixed inset-0 z-0">
         <Hyperspeed
@@ -120,7 +120,7 @@ export default function Home() {
               </h1>
               {user ? (
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-300 text-sm">Welcome, {user.username}!</span>
+                  <span className="text-gray-300 text-sm">Welcome, {user.username}! {user.role}</span>
                   <button
                     onClick={() => router.push('/upload')}
                     className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"

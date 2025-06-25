@@ -115,7 +115,8 @@ const authOptions = {
               email: dbUser.email,
               fullName: dbUser.fullName,
               isOAuthUser: dbUser.isOAuthUser,
-              passwordSetupComplete: dbUser.passwordSetupComplete
+              passwordSetupComplete: dbUser.passwordSetupComplete,
+              role: dbUser.role
             };
           } else {
             console.log('User not found in database during JWT callback');

@@ -18,7 +18,8 @@ export async function authenticateRequest(request, authOptions) {
           user: {
             id: session.user.id,
             username: session.user.username,
-            email: session.user.email
+            email: session.user.email,
+            role: session.user.role,
           },
           authType: 'session'
         };

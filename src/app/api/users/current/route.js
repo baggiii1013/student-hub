@@ -13,7 +13,8 @@ export async function GET(request) {
     return createResponse({
       username: authResult.user.username,
       email: authResult.user.email,
-      id: authResult.user.id
+      id: authResult.user.id,
+      role: authResult.user.role
     });
 
   } catch (error) {
