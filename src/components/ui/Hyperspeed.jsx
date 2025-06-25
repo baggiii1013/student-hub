@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
-import * as THREE from 'three';
 import { BloomEffect, EffectComposer, EffectPass, RenderPass, SMAAEffect, SMAAPreset } from 'postprocessing';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import * as THREE from 'three';
 
-const Hyperspeed = ({ effectOptions = {
+const Hyperspeed = forwardRef(({ effectOptions = {
   onSpeedUp: () => { },
   onSlowDown: () => { },
   distortion: 'turbulentDistortion',
@@ -38,8 +38,24 @@ const Hyperspeed = ({ effectOptions = {
     rightCars: [0x03B3C3, 0x0E5EA5, 0x324555],
     sticks: 0x03B3C3,
   }
-} }) => {
+} }, ref) => {
   const hyperspeed = useRef(null);
+  const appInstanceRef = useRef(null);
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    speedUp: () => {
+      if (appInstanceRef.current) {
+        appInstanceRef.current.onMouseDown();
+      }
+    },
+    slowDown: () => {
+      if (appInstanceRef.current) {
+        appInstanceRef.current.onMouseUp();
+      }
+    }
+  }));
+
   useEffect(() => {
     const mountainUniforms = {
       uFreq: { value: new THREE.Vector3(3, 6, 10) },
@@ -1085,6 +1101,7 @@ const Hyperspeed = ({ effectOptions = {
       effectOptions.distortion = distortions[effectOptions.distortion];
 
       const myApp = new App(container, effectOptions);
+      appInstanceRef.current = myApp; // Store reference for external control
       myApp.loadAssets().then(myApp.init);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1093,6 +1110,6 @@ const Hyperspeed = ({ effectOptions = {
   return (
     <div id="lights" className="w-full h-full" ref={hyperspeed}></div>
   );
-}
+});
 
 export default Hyperspeed;

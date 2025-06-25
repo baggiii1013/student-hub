@@ -4,7 +4,7 @@ import Hyperspeed from '@/components/ui/Hyperspeed';
 import { useAuth } from '@/contexts/AuthContext';
 import { studentAPI } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,6 +13,7 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
+  const hyperspeedRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
@@ -26,6 +27,11 @@ export default function Home() {
   const handleSearch = async (e) => {
     e && e.preventDefault();
     if (!searchQuery.trim()) return;
+
+    // Trigger hyperspeed speed-up effect
+    if (hyperspeedRef.current) {
+      hyperspeedRef.current.speedUp();
+    }
 
     setIsSearching(true);
     
@@ -46,6 +52,13 @@ export default function Home() {
       setSearchResults([]);
     } finally {
       setIsSearching(false);
+      
+      // Slow down hyperspeed effect after search completes
+      setTimeout(() => {
+        if (hyperspeedRef.current) {
+          hyperspeedRef.current.slowDown();
+        }
+      }, 1000); // Keep the speed effect for 1 second after search completes
     }
   };
 
@@ -54,6 +67,7 @@ export default function Home() {
       {/* Hyperspeed background */}
       <div className="fixed inset-0 z-0">
         <Hyperspeed
+          ref={hyperspeedRef}
           effectOptions={{
             onSpeedUp: () => { },
             onSlowDown: () => { },
