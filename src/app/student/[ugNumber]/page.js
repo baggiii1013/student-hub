@@ -8,7 +8,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 // Helper components for editable fields - moved outside to prevent re-creation
-const EditableField = ({ label, field, type = 'text', options = null, currentStudent, isEditing, isAdminOrHigher, handleFieldChange }) => {
+const EditableField = ({ label, field, type = 'text', options = null, currentStudent, isEditing, isAdminOrHigher, handleFieldChange, user = null }) => {
+  // Check if this is a sensitive field that requires login
+  const sensitiveFields = ['whatsappNumber', 'fatherNumber', 'motherNumber', 'email', 'phoneNumber'];
+  const isSensitiveField = sensitiveFields.includes(field);
+  
   if (isEditing && isAdminOrHigher()) {
     if (type === 'select') {
       return (
@@ -59,6 +63,21 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
     let displayValue = currentStudent[field];
     if (type === 'date' && displayValue) {
       displayValue = new Date(displayValue).toLocaleDateString();
+    }
+    
+    // Check if user is logged in for sensitive fields
+    if (isSensitiveField && !user) {
+      return (
+        <div className="flex justify-between items-center">
+          <span className="text-gray-400">{label}:</span>
+          <div className="flex items-center gap-2">
+            <span className="text-orange-400 font-mono text-sm">🔒 ••••••••••</span>
+            <span className="text-xs text-orange-300 bg-orange-900/30 px-2 py-1 rounded">
+              Login Required
+            </span>
+          </div>
+        </div>
+      );
     }
     
     // Special handling for URL fields
@@ -572,6 +591,7 @@ export default function StudentProfilePage() {
                         isEditing={isEditing}
                         isAdminOrHigher={isAdminOrHigher}
                         handleFieldChange={handleFieldChange}
+                        user={user}
                       />
                     </div>
                   </div>
@@ -596,6 +616,7 @@ export default function StudentProfilePage() {
                         isEditing={isEditing}
                         isAdminOrHigher={isAdminOrHigher}
                         handleFieldChange={handleFieldChange}
+                        user={user}
                       />
                       
                       <EditableField 
@@ -606,6 +627,7 @@ export default function StudentProfilePage() {
                         isEditing={isEditing}
                         isAdminOrHigher={isAdminOrHigher}
                         handleFieldChange={handleFieldChange}
+                        user={user}
                       />
                       
                       <EditableField 
@@ -616,6 +638,7 @@ export default function StudentProfilePage() {
                         isEditing={isEditing}
                         isAdminOrHigher={isAdminOrHigher}
                         handleFieldChange={handleFieldChange}
+                        user={user}
                       />
                       
                       <EditableField 
@@ -763,6 +786,7 @@ export default function StudentProfilePage() {
                         isEditing={isEditing}
                         isAdminOrHigher={isAdminOrHigher}
                         handleFieldChange={handleFieldChange}
+                        user={user}
                       />
                     </div>
                   </div>
