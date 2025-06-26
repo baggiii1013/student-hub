@@ -16,12 +16,12 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
   if (isEditing && isAdminOrHigher()) {
     if (type === 'select') {
       return (
-        <div className="flex justify-between items-center">
-          <span className="text-gray-400">{label}:</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+          <span className="text-gray-400 text-sm sm:text-base">{label}:</span>
           <select
             value={currentStudent[field] || ''}
             onChange={(e) => handleFieldChange(field, e.target.value)}
-            className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 focus:outline-none"
+            className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 focus:outline-none text-sm sm:text-base w-full sm:w-auto sm:max-w-48"
           >
             {options.map(option => (
               <option key={option.value} value={option.value}>
@@ -33,25 +33,25 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
       );
     } else if (type === 'date') {
       return (
-        <div className="flex justify-between items-center">
-          <span className="text-gray-400">{label}:</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+          <span className="text-gray-400 text-sm sm:text-base">{label}:</span>
           <input
             type="date"
             value={currentStudent[field] ? new Date(currentStudent[field]).toISOString().split('T')[0] : ''}
             onChange={(e) => handleFieldChange(field, e.target.value ? new Date(e.target.value) : null)}
-            className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 focus:outline-none"
+            className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 focus:outline-none text-sm sm:text-base w-full sm:w-auto"
           />
         </div>
       );
     } else {
       return (
-        <div className="flex justify-between items-center">
-          <span className="text-gray-400">{label}:</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+          <span className="text-gray-400 text-sm sm:text-base">{label}:</span>
           <input
             type={type}
             value={currentStudent[field] || ''}
             onChange={(e) => handleFieldChange(field, e.target.value)}
-            className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 focus:outline-none max-w-48"
+            className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 focus:outline-none text-sm sm:text-base w-full sm:w-auto sm:max-w-48"
           />
         </div>
       );
@@ -68,11 +68,11 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
     // Check if user is logged in for sensitive fields
     if (isSensitiveField && !user) {
       return (
-        <div className="flex justify-between items-center">
-          <span className="text-gray-400">{label}:</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+          <span className="text-gray-400 text-sm sm:text-base">{label}:</span>
           <div className="flex items-center gap-2">
-            <span className="text-orange-400 font-mono text-sm">🔒 ••••••••••</span>
-            <span className="text-xs text-orange-300 bg-orange-900/30 px-2 py-1 rounded">
+            <span className="text-orange-400 font-mono text-xs sm:text-sm">🔒 ••••••••••</span>
+            <span className="text-xs text-orange-300 bg-orange-900/30 px-2 py-1 rounded whitespace-nowrap">
               Login Required
             </span>
           </div>
@@ -83,13 +83,13 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
     // Special handling for URL fields
     if (type === 'url' && displayValue) {
       return (
-        <div className="flex justify-between items-start">
-          <span className="text-gray-400">{label}:</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-2">
+          <span className="text-gray-400 text-sm sm:text-base">{label}:</span>
           <a 
             href={displayValue} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-300 underline break-all max-w-48 text-right"
+            className="text-blue-400 hover:text-blue-300 underline break-all text-sm sm:text-base sm:max-w-48 sm:text-right"
           >
             View {label}
           </a>
@@ -98,9 +98,9 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
     }
     
     return (
-      <div className="flex justify-between">
-        <span className="text-gray-400">{label}:</span>
-        <span className="text-white font-mono">{displayValue}</span>
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+        <span className="text-gray-400 text-sm sm:text-base">{label}:</span>
+        <span className="text-white font-mono text-sm sm:text-base break-all">{displayValue}</span>
       </div>
     );
   }
@@ -120,12 +120,12 @@ const DocumentStatus = ({ label, field, currentStudent, isEditing, isAdminOrHigh
         ];
     
     return (
-      <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
-        <span className="text-gray-300">{label}:</span>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-3 bg-gray-700/50 rounded-lg">
+        <span className="text-gray-300 text-sm sm:text-base">{label}:</span>
         <select
           value={currentStudent[field] || 'no'}
           onChange={(e) => handleFieldChange(field, e.target.value)}
-          className="bg-gray-600 text-white px-2 py-1 rounded border border-gray-500 focus:border-purple-500 focus:outline-none"
+          className="bg-gray-600 text-white px-2 py-1 rounded border border-gray-500 focus:border-purple-500 focus:outline-none text-sm sm:text-base w-full sm:w-auto"
         >
           {options.map(option => (
             <option key={option.value} value={option.value}>
@@ -137,9 +137,9 @@ const DocumentStatus = ({ label, field, currentStudent, isEditing, isAdminOrHigh
     );
   } else {
     return (
-      <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
-        <span className="text-gray-300">{label}:</span>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-3 bg-gray-700/50 rounded-lg">
+        <span className="text-gray-300 text-sm sm:text-base">{label}:</span>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium text-center sm:text-left ${
           currentStudent[field] === 'yes' 
             ? 'bg-green-100 text-green-700' 
             : currentStudent[field] === 'NA'
@@ -353,38 +353,38 @@ export default function StudentProfilePage() {
           </header>
 
           {/* Profile Content */}
-          <main className="container mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-12">
+          <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 lg:py-12">
             <div className={`max-w-4xl mx-auto transform transition-all duration-1000 delay-300 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
               {/* Profile Header */}
               <div className="relative group mb-6 sm:mb-8">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl sm:rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-gray-700">
-                  <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-700">
+                  <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6">
                     {/* Avatar */}
-                    <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-3xl sm:text-4xl flex-shrink-0">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-2xl sm:text-3xl md:text-4xl flex-shrink-0">
                       {student.name.charAt(0).toUpperCase()}
                     </div>
                     
                     {/* Basic Info */}
                     <div className="flex-1 text-center md:text-left">
-                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
+                      <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 break-words">
                         {student.name}
                       </h1>
-                      <p className="text-purple-400 font-mono text-lg sm:text-xl mb-2">
+                      <p className="text-purple-400 font-mono text-base sm:text-lg md:text-xl mb-2 break-all">
                         {student.ugNumber}
                       </p>
                       <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
-                        <span className="px-3 py-1 bg-purple-600/30 text-purple-300 rounded-full text-sm">
+                        <span className="px-2 sm:px-3 py-1 bg-purple-600/30 text-purple-300 rounded-full text-xs sm:text-sm">
                           {student.branch}
                         </span>
-                        <span className="px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm">
+                        <span className="px-2 sm:px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-xs sm:text-sm">
                           {student.year}
                         </span>
-                        <span className="px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm">
+                        <span className="px-2 sm:px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-xs sm:text-sm">
                           Division {student.division}
                         </span>
                         {student.btechDiploma && (
-                          <span className="px-3 py-1 bg-orange-600/30 text-orange-300 rounded-full text-sm">
+                          <span className="px-2 sm:px-3 py-1 bg-orange-600/30 text-orange-300 rounded-full text-xs sm:text-sm">
                             {student.btechDiploma}
                           </span>
                         )}
@@ -393,26 +393,26 @@ export default function StudentProfilePage() {
                     
                     {/* Edit Controls - Only for admin and above */}
                     {isAdminOrHigher() && (
-                      <div className="flex flex-col gap-2 items-center">
+                      <div className="flex flex-col gap-2 items-center w-full md:w-auto">
                         <RoleIndicator size="sm" showPermissions={false} variant="badge" />
                         {!isEditing ? (
                           <button
                             onClick={handleEdit}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                            className="w-full md:w-auto px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                             Edit Student
                           </button>
                         ) : (
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 w-full md:w-auto">
                             <button
                               onClick={handleSave}
                               disabled={saving}
-                              className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center gap-2"
+                              className="flex-1 md:flex-initial px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                               </svg>
                               {saving ? 'Saving...' : 'Save'}
@@ -420,9 +420,9 @@ export default function StudentProfilePage() {
                             <button
                               onClick={handleCancelEdit}
                               disabled={saving}
-                              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center gap-2"
+                              className="flex-1 md:flex-initial px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                               </svg>
                               Cancel
@@ -437,27 +437,27 @@ export default function StudentProfilePage() {
 
               {/* Save Error Display */}
               {saveError && (
-                <div className="mb-6 p-4 bg-red-600/20 border border-red-600 rounded-lg">
-                  <p className="text-red-300 text-sm">{saveError}</p>
+                <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-600/20 border border-red-600 rounded-lg">
+                  <p className="text-red-300 text-sm sm:text-base break-words">{saveError}</p>
                 </div>
               )}
 
               {/* Profile Details */}
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
                 {/* Academic Information */}
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-gray-700">
+                    <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
                       Academic Information
                     </h2>
                     <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">UG Number:</span>
-                        <span className="text-white font-mono">{student.ugNumber}</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                        <span className="text-gray-400 text-sm sm:text-base">UG Number:</span>
+                        <span className="text-white font-mono text-sm sm:text-base break-all">{student.ugNumber}</span>
                       </div>
                       
                       <EditableField 
@@ -600,9 +600,9 @@ export default function StudentProfilePage() {
                 {/* Contact Information */}
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-teal-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-gray-700">
+                    <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
                       Contact Information
@@ -675,14 +675,14 @@ export default function StudentProfilePage() {
                 {/* Document Verification Status */}
                 <div className="relative group md:col-span-2">
                   <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-gray-700">
+                    <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       Document Verification Status
                     </h2>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                       <DocumentStatus 
                         label="10th Marksheet" 
                         field="tenthMarksheet"
@@ -730,14 +730,14 @@ export default function StudentProfilePage() {
                 {/* Additional Information */}
                 <div className="relative group md:col-span-2">
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-gray-700">
+                    <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       Additional Information
                     </h2>
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2">
                       <EditableField 
                         label="Time Table" 
                         field="timeTable" 
