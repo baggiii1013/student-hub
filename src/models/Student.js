@@ -24,10 +24,70 @@ const studentSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  fullNameAs12th: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  whatsappNumber: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  fatherNumber: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  motherNumber: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  caste: {
+    type: String,
+    enum: ['General(open)', 'OBC', 'SC', 'ST', 'Other'],
+    default: 'General(open)'
+  },
+  state: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  dateOfBirth: {
+    type: Date,
+    default: null
+  },
   branch: {
     type: String,
     default: '',
-    enum:['CSE','AI','CE','OTHER'],
+    enum: ['CSE', 'CE', 'AI', 'OTHER'],
+  },
+  // Document verification fields
+  tenthMarksheet: {
+    type: String,
+    enum: ['yes', 'no'],
+    default: 'no'
+  },
+  twelfthMarksheet: {
+    type: String,
+    enum: ['yes', 'no'],
+    default: 'no'
+  },
+  lcTcMigrationCertificate: {
+    type: String,
+    enum: ['yes', 'no'],
+    default: 'no'
+  },
+  casteCertificate: {
+    type: String,
+    enum: ['yes', 'no', 'NA'],
+    default: 'NA'
+  },
+  admissionLetter: {
+    type: String,
+    enum: ['yes', 'no'],
+    default: 'no'
   },
   btechDiploma: {
     type: String,
@@ -84,10 +144,13 @@ const studentSchema = new mongoose.Schema({
 // Create text indexes for search
 studentSchema.index({
   name: 'text',
+  fullNameAs12th: 'text',
   ugNumber: 'text',
   branch: 'text',
   division: 'text',
-  mftName: 'text'
+  mftName: 'text',
+  state: 'text',
+  caste: 'text'
 });
 
 // Pre-save hook to generate search keywords - only for individual saves
@@ -96,11 +159,14 @@ studentSchema.pre('save', function(next) {
   if (this.isNew || this.isModified()) {
     const keywords = [
       this.name?.toLowerCase(),
+      this.fullNameAs12th?.toLowerCase(),
       this.ugNumber?.toLowerCase(),
       this.branch?.toLowerCase(),
       this.division?.toLowerCase(),
       this.mftName?.toLowerCase(),
-      this.enrollmentNo?.toLowerCase()
+      this.enrollmentNo?.toLowerCase(),
+      this.state?.toLowerCase(),
+      this.caste?.toLowerCase()
     ].filter(Boolean);
     
     this.searchKeywords = keywords;

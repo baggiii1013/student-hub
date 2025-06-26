@@ -1,18 +1,153 @@
 'use client';
 
 
+import RoleIndicator from '@/components/RoleIndicator';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRole } from '@/hooks/useRole';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+
+// Helper components for editable fields - moved outside to prevent re-creation
+const EditableField = ({ label, field, type = 'text', options = null, currentStudent, isEditing, isAdminOrHigher, handleFieldChange }) => {
+  if (isEditing && isAdminOrHigher()) {
+    if (type === 'select') {
+      return (
+        <div className="flex justify-between items-center">
+          <span className="text-gray-400">{label}:</span>
+          <select
+            value={currentStudent[field] || ''}
+            onChange={(e) => handleFieldChange(field, e.target.value)}
+            className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 focus:outline-none"
+          >
+            {options.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      );
+    } else if (type === 'date') {
+      return (
+        <div className="flex justify-between items-center">
+          <span className="text-gray-400">{label}:</span>
+          <input
+            type="date"
+            value={currentStudent[field] ? new Date(currentStudent[field]).toISOString().split('T')[0] : ''}
+            onChange={(e) => handleFieldChange(field, e.target.value ? new Date(e.target.value) : null)}
+            className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 focus:outline-none"
+          />
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex justify-between items-center">
+          <span className="text-gray-400">{label}:</span>
+          <input
+            type={type}
+            value={currentStudent[field] || ''}
+            onChange={(e) => handleFieldChange(field, e.target.value)}
+            className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-purple-500 focus:outline-none max-w-48"
+          />
+        </div>
+      );
+    }
+  } else {
+    // Display mode
+    if (!currentStudent[field] && type !== 'select') return null;
+    
+    let displayValue = currentStudent[field];
+    if (type === 'date' && displayValue) {
+      displayValue = new Date(displayValue).toLocaleDateString();
+    }
+    
+    // Special handling for URL fields
+    if (type === 'url' && displayValue) {
+      return (
+        <div className="flex justify-between items-start">
+          <span className="text-gray-400">{label}:</span>
+          <a 
+            href={displayValue} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 underline break-all max-w-48 text-right"
+          >
+            View {label}
+          </a>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="flex justify-between">
+        <span className="text-gray-400">{label}:</span>
+        <span className="text-white font-mono">{displayValue}</span>
+      </div>
+    );
+  }
+};
+
+const DocumentStatus = ({ label, field, currentStudent, isEditing, isAdminOrHigher, handleFieldChange }) => {
+  if (isEditing && isAdminOrHigher()) {
+    const options = field === 'casteCertificate' 
+      ? [
+          { value: 'yes', label: 'Yes' },
+          { value: 'no', label: 'No' },
+          { value: 'NA', label: 'N/A' }
+        ]
+      : [
+          { value: 'yes', label: 'Yes' },
+          { value: 'no', label: 'No' }
+        ];
+    
+    return (
+      <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+        <span className="text-gray-300">{label}:</span>
+        <select
+          value={currentStudent[field] || 'no'}
+          onChange={(e) => handleFieldChange(field, e.target.value)}
+          className="bg-gray-600 text-white px-2 py-1 rounded border border-gray-500 focus:border-purple-500 focus:outline-none"
+        >
+          {options.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  } else {
+    return (
+      <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+        <span className="text-gray-300">{label}:</span>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+          currentStudent[field] === 'yes' 
+            ? 'bg-green-100 text-green-700' 
+            : currentStudent[field] === 'NA'
+            ? 'bg-gray-100 text-gray-700'
+            : 'bg-red-100 text-red-700'
+        }`}>
+          {currentStudent[field] === 'yes' ? '✓ Verified' : 
+           currentStudent[field] === 'NA' ? 'N/A' : '✗ Pending'}
+        </span>
+      </div>
+    );
+  }
+};
 
 export default function StudentProfilePage() {
   const { ugNumber } = useParams();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { isAdminOrHigher } = useRole();
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedStudent, setEditedStudent] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const fetchStudent = useCallback(async () => {
     try {
@@ -24,6 +159,7 @@ export default function StudentProfilePage() {
       
       if (data.success) {
         setStudent(data.data);
+        setEditedStudent(data.data);
       } else {
         setError(data.message || 'Student not found');
       }
@@ -34,6 +170,55 @@ export default function StudentProfilePage() {
       setLoading(false);
     }
   }, [ugNumber]);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditedStudent({ ...student });
+    setSaveError('');
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedStudent({ ...student });
+    setSaveError('');
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setSaveError('');
+
+      const response = await fetch(`/api/students/${ugNumber}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editedStudent),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStudent(data.data);
+        setEditedStudent(data.data);
+        setIsEditing(false);
+      } else {
+        setSaveError(data.message || 'Failed to save changes');
+      }
+    } catch (error) {
+      console.error('Error saving student:', error);
+      setSaveError('Failed to save changes');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleFieldChange = (field, value) => {
+    setEditedStudent(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -63,6 +248,8 @@ export default function StudentProfilePage() {
       </div>
     );
   }
+
+  const currentStudent = isEditing ? editedStudent : student;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
@@ -184,9 +371,57 @@ export default function StudentProfilePage() {
                         )}
                       </div>
                     </div>
+                    
+                    {/* Edit Controls - Only for admin and above */}
+                    {isAdminOrHigher() && (
+                      <div className="flex flex-col gap-2 items-center">
+                        <RoleIndicator size="sm" showPermissions={false} variant="badge" />
+                        {!isEditing ? (
+                          <button
+                            onClick={handleEdit}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Edit Student
+                          </button>
+                        ) : (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleSave}
+                              disabled={saving}
+                              className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                              {saving ? 'Saving...' : 'Save'}
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              disabled={saving}
+                              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              Cancel
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {/* Save Error Display */}
+              {saveError && (
+                <div className="mb-6 p-4 bg-red-600/20 border border-red-600 rounded-lg">
+                  <p className="text-red-300 text-sm">{saveError}</p>
+                </div>
+              )}
 
               {/* Profile Details */}
               <div className="grid gap-6 md:grid-cols-2">
@@ -205,32 +440,139 @@ export default function StudentProfilePage() {
                         <span className="text-gray-400">UG Number:</span>
                         <span className="text-white font-mono">{student.ugNumber}</span>
                       </div>
-                      {student.enrollmentNo && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Enrollment No:</span>
-                          <span className="text-white font-mono">{student.enrollmentNo}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Branch:</span>
-                        <span className="text-white">{student.branch}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Division:</span>
-                        <span className="text-white">{student.division}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Batch:</span>
-                        <span className="text-white">{student.batch}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Year:</span>
-                        <span className="text-white">{student.year}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Program:</span>
-                        <span className="text-white">{student.btechDiploma}</span>
-                      </div>
+                      
+                      <EditableField 
+                        label="Enrollment No" 
+                        field="enrollmentNo"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Student Name" 
+                        field="name"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Full Name (as per 12th)" 
+                        field="fullNameAs12th"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Branch" 
+                        field="branch" 
+                        type="select"
+                        options={[
+                          { value: '', label: 'Select Branch' },
+                          { value: 'CSE', label: 'Computer Science & Engineering' },
+                          { value: 'CE', label: 'Computer Engineering' },
+                          { value: 'AI', label: 'Artificial Intelligence' },
+                          { value: 'OTHER', label: 'Other' }
+                        ]}
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Date of Birth" 
+                        field="dateOfBirth" 
+                        type="date"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Caste" 
+                        field="caste" 
+                        type="select"
+                        options={[
+                          { value: 'General(open)', label: 'General (Open)' },
+                          { value: 'OBC', label: 'OBC' },
+                          { value: 'SC', label: 'SC' },
+                          { value: 'ST', label: 'ST' },
+                          { value: 'Other', label: 'Other' }
+                        ]}
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="State" 
+                        field="state"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Division" 
+                        field="division"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Batch" 
+                        field="batch" 
+                        type="number"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Year" 
+                        field="year"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Program" 
+                        field="btechDiploma" 
+                        type="select"
+                        options={[
+                          { value: 'BTech', label: 'B.Tech' },
+                          { value: 'Diploma', label: 'Diploma' },
+                          { value: 'D2D', label: 'D2D' }
+                        ]}
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Email" 
+                        field="email" 
+                        type="email"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
                     </div>
                   </div>
                 </div>
@@ -246,21 +588,118 @@ export default function StudentProfilePage() {
                       Contact Information
                     </h2>
                     <div className="space-y-3">
-                      {/* Email and Phone Number are hidden for privacy */}
-                      {student.roomNumber && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Room Number:</span>
-                          <span className="text-white">{student.roomNumber}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">MFT Name:</span>
-                        <span className="text-white">{student.mftName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">MFT Contact:</span>
-                        <span className="text-white">{student.mftContactNumber}</span>
-                      </div>
+                      <EditableField 
+                        label="WhatsApp Number" 
+                        field="whatsappNumber" 
+                        type="tel"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Father's Number" 
+                        field="fatherNumber" 
+                        type="tel"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Mother's Number" 
+                        field="motherNumber" 
+                        type="tel"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Room Number" 
+                        field="roomNumber"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="MFT Name" 
+                        field="mftName"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="MFT Contact" 
+                        field="mftContactNumber" 
+                        type="tel"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Document Verification Status */}
+                <div className="relative group md:col-span-2">
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
+                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Document Verification Status
+                    </h2>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      <DocumentStatus 
+                        label="10th Marksheet" 
+                        field="tenthMarksheet"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      <DocumentStatus 
+                        label="12th Marksheet" 
+                        field="twelfthMarksheet"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      <DocumentStatus 
+                        label="LC/TC/Migration" 
+                        field="lcTcMigrationCertificate"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      <DocumentStatus 
+                        label="Caste Certificate" 
+                        field="casteCertificate"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      <DocumentStatus 
+                        label="Admission Letter" 
+                        field="admissionLetter"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
                     </div>
                   </div>
                 </div>
@@ -276,35 +715,55 @@ export default function StudentProfilePage() {
                       Additional Information
                     </h2>
                     <div className="grid gap-4 md:grid-cols-2">
-                      {student.timeTable && (
-                        <div>
-                          <span className="text-gray-400 block mb-1">Time Table:</span>
-                          <a 
-                            href={student.timeTable} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 underline break-all"
-                          >
-                            View Timetable
-                          </a>
-                        </div>
-                      )}
-                      {student.dateOfAdmission && (
-                        <div>
-                          <span className="text-gray-400 block mb-1">Date of Admission:</span>
-                          <span className="text-white">
-                            {new Date(student.dateOfAdmission).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
-                      <div>
-                        <span className="text-gray-400 block mb-1">Serial Number:</span>
-                        <span className="text-white">{student.srNo}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400 block mb-1">Sequence in Division:</span>
-                        <span className="text-white">{student.seqInDivision}</span>
-                      </div>
+                      <EditableField 
+                        label="Time Table" 
+                        field="timeTable" 
+                        type="url"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Date of Admission" 
+                        field="dateOfAdmission" 
+                        type="date"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Serial Number" 
+                        field="srNo" 
+                        type="number"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Sequence in Division" 
+                        field="seqInDivision" 
+                        type="number"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
+                      
+                      <EditableField 
+                        label="Phone Number" 
+                        field="phoneNumber" 
+                        type="tel"
+                        currentStudent={currentStudent}
+                        isEditing={isEditing}
+                        isAdminOrHigher={isAdminOrHigher}
+                        handleFieldChange={handleFieldChange}
+                      />
                     </div>
                   </div>
                 </div>
