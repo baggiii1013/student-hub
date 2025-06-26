@@ -2,7 +2,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
 import connectDB from '@/lib/dbConnection';
 import Student from '@/models/Student';
-import * as XLSX from 'xlsx';
+import Excel from 'exceljs';
 
 export async function POST(request) {
   console.log('Upload API POST called');
@@ -51,20 +51,55 @@ export async function POST(request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    let workbook;
     let data;
 
     try {
       // Parse the file based on type
       if (file.type === 'text/csv') {
-        workbook = XLSX.read(buffer, { type: 'buffer' });
+        // For CSV files, we can still use a simple CSV parser or ExcelJS
+        const workbook = new Excel.Workbook();
+        await workbook.csv.load(buffer);
+        const worksheet = workbook.getWorksheet(1);
+        data = [];
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) return; // Skip header row
+          const rowData = {};
+          row.eachCell((cell, colNumber) => {
+            const headerCell = worksheet.getRow(1).getCell(colNumber);
+            if (headerCell.value) {
+              rowData[headerCell.value] = cell.value;
+            }
+          });
+          data.push(rowData);
+        });
       } else {
-        workbook = XLSX.read(buffer, { type: 'buffer' });
+        // For Excel files (.xlsx, .xls)
+        const workbook = new Excel.Workbook();
+        await workbook.xlsx.load(buffer);
+        const worksheet = workbook.getWorksheet(1);
+        
+        // Get headers from first row
+        const headers = [];
+        const headerRow = worksheet.getRow(1);
+        headerRow.eachCell((cell, colNumber) => {
+          headers[colNumber] = cell.value;
+        });
+        
+        // Parse data rows
+        data = [];
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) return; // Skip header row
+          const rowData = {};
+          row.eachCell((cell, colNumber) => {
+            if (headers[colNumber]) {
+              rowData[headers[colNumber]] = cell.value;
+            }
+          });
+          if (Object.keys(rowData).length > 0) {
+            data.push(rowData);
+          }
+        });
       }
-
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      data = XLSX.utils.sheet_to_json(worksheet);
 
       if (data.length === 0) {
         return createErrorResponse('The spreadsheet appears to be empty', 400);
@@ -128,7 +163,7 @@ export async function POST(request) {
         }
 
         // Validate branch enum
-        const validBranches = ['CSE', 'AI', 'IT', 'ECE', 'ME', 'CE', 'EE', 'CH', 'BT', 'MT', 'PT', 'TT'];
+        const validBranches = ['CSE', 'AI',  'CE' , 'other'];
         if (studentData.branch && !validBranches.includes(studentData.branch)) {
           errors.push({
             row: rowNumber,
@@ -343,15 +378,45 @@ export async function GET(request) {
       }
     ];
 
-    // Create workbook and worksheet
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(sampleData);
+    // Create workbook and worksheet using ExcelJS
+    const workbook = new Excel.Workbook();
+    const worksheet = workbook.addWorksheet('Students');
 
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
+    // Add headers
+    const headers = Object.keys(sampleData[0]);
+    worksheet.addRow(headers);
+
+    // Add sample data rows
+    sampleData.forEach(row => {
+      worksheet.addRow(Object.values(row));
+    });
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4472C4' }
+      };
+      cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+    });
+
+    // Auto-fit columns
+    worksheet.columns.forEach(column => {
+      let maxLength = 0;
+      column.eachCell({ includeEmpty: true }, (cell) => {
+        const columnLength = cell.value ? cell.value.toString().length : 10;
+        if (columnLength > maxLength) {
+          maxLength = columnLength;
+        }
+      });
+      column.width = maxLength < 10 ? 10 : maxLength + 2;
+    });
 
     // Generate buffer
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    const buffer = await workbook.xlsx.writeBuffer();
 
     // Return file
     return new Response(buffer, {
