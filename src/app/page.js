@@ -119,35 +119,41 @@ export default function Home() {
       <div className="relative z-10">
         {/* Header with conditional auth buttons */}
         <header className="pt-4 sm:pt-6 md:pt-8 pb-4 sm:pb-6">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent text-center sm:text-left">
                 Student Hub
               </h1>
               {user ? (
-                <div className="flex items-center gap-6">
-                  <UserProfileSection variant="horizontal" />
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 w-full sm:w-auto">
+                  <div className="hidden sm:block">
+                    <UserProfileSection variant="horizontal" />
+                  </div>
+                  <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-3 w-full sm:w-auto">
                     <RoleProtected requiredRole="admin">
                       <button
                         onClick={() => router.push('/upload')}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                        className="flex-1 sm:flex-initial bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm min-h-[40px] flex items-center justify-center"
                       >
-                        Upload Data
+                        <span className="sm:hidden">Upload</span>
+                        <span className="hidden sm:inline">Upload Data</span>
                       </button>
                     </RoleProtected>
                     <button
                       onClick={() => router.push(`/profile/${user.username}`)}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                      className="flex-1 sm:flex-initial bg-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm min-h-[40px] flex items-center justify-center"
                     >
                       Profile
                     </button>
                     <button
                       onClick={logout}
-                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
+                      className="flex-1 sm:flex-initial bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm min-h-[40px] flex items-center justify-center"
                     >
                       Logout
                     </button>
+                  </div>
+                  <div className="block sm:hidden w-full">
+                    <UserProfileSection variant="horizontal" />
                   </div>
                 </div>
               ) : (
@@ -158,12 +164,12 @@ export default function Home() {
         </header>
 
         {/* Hero Section */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`text-center transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mb-8 sm:mb-12`}>
-            <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className={`text-center transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mb-6 sm:mb-8 md:mb-12`}>
+            <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse">
               Find Student Info
             </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
               Connect, discover, and collaborate with students across campus. 
               Enter the exact UG number to find student information.
             </p>
@@ -172,7 +178,7 @@ export default function Home() {
 
         {/* Role Stats Section */}
         {user && (
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 mb-6 sm:mb-8">
             <div className={`max-w-2xl mx-auto transform transition-all duration-1000 delay-150 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
               <RoleStatsCard />
             </div>
@@ -180,7 +186,7 @@ export default function Home() {
         )}
 
         {/* Search Section */}
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
+        <main className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-12">
           <div className={`max-w-4xl mx-auto transform transition-all duration-1000 delay-300 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             {/* Search Form */}
             <form onSubmit={handleSearch} className="mb-6 sm:mb-8 md:mb-12">
@@ -194,10 +200,10 @@ export default function Home() {
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Enter exact UG number (e.g., UG/2023/001)..."
-                          className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-3.5 md:py-4 bg-gray-700/50 border border-gray-600 rounded-lg sm:rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base md:text-lg min-h-[44px]"
+                          className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-3.5 md:py-4 bg-gray-700/50 border border-gray-600 rounded-lg sm:rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base md:text-lg min-h-[48px]"
                           style={{fontSize: '16px'}}
                         />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 sm:pr-4 md:pr-6">
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 sm:pr-4 md:pr-6 pointer-events-none">
                           <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
@@ -206,7 +212,7 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={isSearching}
-                        className="w-full px-4 sm:px-6 md:px-8 py-3 sm:py-3.5 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg sm:rounded-xl hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base md:text-lg min-h-[48px] flex items-center justify-center"
+                        className="w-full px-4 sm:px-6 md:px-8 py-3 sm:py-3.5 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg sm:rounded-xl hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm sm:text-base md:text-lg min-h-[48px] flex items-center justify-center"
                       >
                         {isSearching ? (
                           <div className="flex items-center justify-center gap-2">
@@ -224,15 +230,15 @@ export default function Home() {
 
               {/* Search Results */}
               {searchQuery.trim() && searchResults.length === 0 && !isSearching && (
-                <div className="text-center py-8 sm:py-12">
-                  <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 sm:p-8 border border-gray-700 max-w-md mx-auto">
-                    <div className="w-16 h-16 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-6 sm:py-8 md:py-12">
+                  <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 md:p-8 border border-gray-700 max-w-md mx-auto">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.467-.881-6.077-2.33l-.853-.854A7.962 7.962 0 016 6c0-2.21.895-4.21 2.343-5.657L9.172 1.172a4 4 0 015.656 0L15.657.343A7.962 7.962 0 0118 6a7.96 7.96 0 01-.93 3.77l-.854.853z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">No Student Found</h3>
-                    <p className="text-gray-300 text-sm sm:text-base">
+                    <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-2">No Student Found</h3>
+                    <p className="text-gray-300 text-sm sm:text-base break-words">
                       No student found with UG number &quot;{searchQuery.trim()}&quot;. 
                       Please check the UG number and try again.
                     </p>
@@ -242,7 +248,7 @@ export default function Home() {
               
               {searchResults.length > 0 && (
                 <div className="space-y-4 sm:space-y-6">
-                  <h2 className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 px-1 sm:px-2">
+                  <h2 className="text-base sm:text-lg md:text-2xl lg:text-3xl font-bold text-white mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 px-1 sm:px-2">
                     <span className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -252,7 +258,7 @@ export default function Home() {
                       Student Found
                     </span>
                   </h2>
-                  <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {searchResults.map((student, index) => (
                       <div
                         key={student._id}
@@ -266,7 +272,7 @@ export default function Home() {
                               {student.name.charAt(0)}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h3 className="text-sm sm:text-lg md:text-xl font-semibold text-white group-hover:text-purple-300 transition-colors truncate">
+                              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-white group-hover:text-purple-300 transition-colors truncate">
                                 {student.name}
                               </h3>
                               <p className="text-purple-400 font-mono text-xs sm:text-sm truncate">{student.ugNumber}</p>
@@ -308,7 +314,7 @@ export default function Home() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                <span className="text-xs sm:text-sm">{student.state}</span>
+                                <span className="text-xs sm:text-sm truncate">{student.state}</span>
                               </div>
                             )}
                             {student.caste && student.caste !== 'General(open)' && (

@@ -333,18 +333,6 @@ export default function StudentProfilePage() {
                       >
                         Search
                       </button>
-                      <button
-                        onClick={() => router.push('/login')}
-                        className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
-                      >
-                        Login
-                      </button>
-                      <button
-                        onClick={() => router.push('/register')}
-                        className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105 min-h-[44px] flex items-center justify-center"
-                      >
-                        Register
-                      </button>
                     </div>
                   )}
                 </div>
