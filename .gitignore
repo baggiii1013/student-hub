@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# vscode - keep settings.json for schema configuration
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/*.code-workspace
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
