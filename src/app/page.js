@@ -128,38 +128,40 @@ export default function Home() {
                   <div className="hidden sm:block">
                     <UserProfileSection variant="horizontal" />
                   </div>
-                  <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  
+                  {/* Desktop Button Layout */}
+                  <div className="hidden sm:flex items-center gap-3 w-full sm:w-auto">
                     <RoleProtected requiredRole="admin">
                       <button
                         onClick={() => router.push('/upload')}
-                        className="flex-1 sm:flex-initial bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm min-h-[40px] flex items-center justify-center"
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 text-sm transform hover:scale-105 active:scale-95"
                       >
-                        <span className="sm:hidden">Upload</span>
-                        <span className="hidden sm:inline">Upload Data</span>
+                        Upload Data
                       </button>
                     </RoleProtected>
                     <RoleProtected requiredRole="superAdmin">
                       <button
                         onClick={() => router.push('/user-management')}
-                        className="flex-1 sm:flex-initial bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-xs sm:text-sm min-h-[40px] flex items-center justify-center"
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 text-sm transform hover:scale-105 active:scale-95"
                       >
-                        <span className="sm:hidden">Users</span>
-                        <span className="hidden sm:inline">Manage Users</span>
+                        Manage Users
                       </button>
                     </RoleProtected>
                     <button
                       onClick={() => router.push(`/profile/${user.username}`)}
-                      className="flex-1 sm:flex-initial bg-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm min-h-[40px] flex items-center justify-center"
+                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-all duration-200 text-sm transform hover:scale-105 active:scale-95"
                     >
                       Profile
                     </button>
                     <button
                       onClick={logout}
-                      className="flex-1 sm:flex-initial bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm min-h-[40px] flex items-center justify-center"
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-200 text-sm transform hover:scale-105 active:scale-95"
                     >
                       Logout
                     </button>
                   </div>
+                  
+                  {/* Mobile Profile Section */}
                   <div className="block sm:hidden w-full">
                     <UserProfileSection variant="horizontal" />
                   </div>
@@ -170,6 +172,189 @@ export default function Home() {
             </div>
           </div>
         </header>
+
+        {/* Mobile Floating Action Menu */}
+        {user && (
+          <div className="sm:hidden">
+            {/* Floating Action Button */}
+            <div className="fixed bottom-20 right-6 z-[60]">
+              <div className="relative">
+                {/* Main FAB */}
+                <button
+                  onClick={() => {
+                    const menu = document.getElementById('mobile-fab-menu');
+                    const fab = document.getElementById('mobile-fab-button');
+                    const backdrop = document.getElementById('mobile-fab-backdrop');
+                    const isOpen = menu.classList.contains('opacity-100');
+                    
+                    if (isOpen) {
+                      menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                      menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+                      backdrop.classList.add('opacity-0', 'pointer-events-none');
+                      backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+                      fab.classList.remove('rotate-45');
+                      fab.setAttribute('aria-expanded', 'false');
+                    } else {
+                      menu.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+                      menu.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+                      backdrop.classList.remove('opacity-0', 'pointer-events-none');
+                      backdrop.classList.add('opacity-100', 'pointer-events-auto');
+                      fab.classList.add('rotate-45');
+                      fab.setAttribute('aria-expanded', 'true');
+                    }
+                  }}
+                  id="mobile-fab-button"
+                  aria-label="Open menu"
+                  aria-expanded="false"
+                  className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center touch-manipulation transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-300"
+                >
+                  <span className="text-2xl transition-transform duration-300" aria-hidden="true">⚡</span>
+                </button>
+
+                {/* FAB Menu */}
+                <div
+                  id="mobile-fab-menu"
+                  className="absolute bottom-20 right-0 opacity-0 pointer-events-none scale-95 transition-all duration-300 origin-bottom-right z-10"
+                  role="menu"
+                  aria-label="Navigation actions"
+                >
+                  <div className="flex flex-col gap-3 items-end">
+                    {/* Profile */}
+                    <div className="flex items-center gap-2 fab-menu-item">
+                      <div className="bg-black/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
+                        Profile
+                      </div>
+                      <button
+                        onClick={() => {
+                          // Close menu and navigate
+                          const menu = document.getElementById('mobile-fab-menu');
+                          const fab = document.getElementById('mobile-fab-button');
+                          const backdrop = document.getElementById('mobile-fab-backdrop');
+                          menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                          menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+                          backdrop.classList.add('opacity-0', 'pointer-events-none');
+                          backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+                          fab.classList.remove('rotate-45');
+                          fab.setAttribute('aria-expanded', 'false');
+                          router.push(`/profile/${user.username}`);
+                        }}
+                        role="menuitem"
+                        aria-label="View your profile"
+                        className="w-12 h-12 bg-white border-2 border-purple-600 text-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center touch-manipulation transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-300"
+                      >
+                        <span className="text-lg" aria-hidden="true">👤</span>
+                      </button>
+                    </div>
+
+                    {/* Upload Data (for admins) */}
+                    <RoleProtected requiredRole="admin">
+                      <div className="flex items-center gap-2 fab-menu-item">
+                        <div className="bg-black/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
+                          Upload Data
+                        </div>
+                        <button
+                          onClick={() => {
+                            // Close menu and navigate
+                            const menu = document.getElementById('mobile-fab-menu');
+                            const fab = document.getElementById('mobile-fab-button');
+                            const backdrop = document.getElementById('mobile-fab-backdrop');
+                            menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                            menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+                            backdrop.classList.add('opacity-0', 'pointer-events-none');
+                            backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+                            fab.classList.remove('rotate-45');
+                            fab.setAttribute('aria-expanded', 'false');
+                            router.push('/upload');
+                          }}
+                          role="menuitem"
+                          aria-label="Upload student data"
+                          className="w-12 h-12 bg-white border-2 border-green-600 text-green-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center touch-manipulation transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-green-300"
+                        >
+                          <span className="text-lg" aria-hidden="true">📤</span>
+                        </button>
+                      </div>
+                    </RoleProtected>
+
+                    {/* User Management (for superAdmins) */}
+                    <RoleProtected requiredRole="superAdmin">
+                      <div className="flex items-center gap-2 fab-menu-item">
+                        <div className="bg-black/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
+                          Manage Users
+                        </div>
+                        <button
+                          onClick={() => {
+                            // Close menu and navigate
+                            const menu = document.getElementById('mobile-fab-menu');
+                            const fab = document.getElementById('mobile-fab-button');
+                            const backdrop = document.getElementById('mobile-fab-backdrop');
+                            menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                            menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+                            backdrop.classList.add('opacity-0', 'pointer-events-none');
+                            backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+                            fab.classList.remove('rotate-45');
+                            fab.setAttribute('aria-expanded', 'false');
+                            router.push('/user-management');
+                          }}
+                          role="menuitem"
+                          aria-label="Manage users"
+                          className="w-12 h-12 bg-white border-2 border-indigo-600 text-indigo-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center touch-manipulation transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-indigo-300"
+                        >
+                          <span className="text-lg" aria-hidden="true">👥</span>
+                        </button>
+                      </div>
+                    </RoleProtected>
+
+                    {/* Logout */}
+                    <div className="flex items-center gap-2 fab-menu-item">
+                      <div className="bg-black/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
+                        Logout
+                      </div>
+                      <button
+                        onClick={() => {
+                          // Close menu and logout
+                          const menu = document.getElementById('mobile-fab-menu');
+                          const fab = document.getElementById('mobile-fab-button');
+                          const backdrop = document.getElementById('mobile-fab-backdrop');
+                          menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                          menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+                          backdrop.classList.add('opacity-0', 'pointer-events-none');
+                          backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+                          fab.classList.remove('rotate-45');
+                          fab.setAttribute('aria-expanded', 'false');
+                          logout();
+                        }}
+                        role="menuitem"
+                        aria-label="Logout"
+                        className="w-12 h-12 bg-white border-2 border-red-600 text-red-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center touch-manipulation transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-red-300"
+                      >
+                        <span className="text-lg" aria-hidden="true">🚪</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Backdrop to close menu when clicking outside */}
+            <div
+              onClick={() => {
+                const menu = document.getElementById('mobile-fab-menu');
+                const fab = document.getElementById('mobile-fab-button');
+                const backdrop = document.getElementById('mobile-fab-backdrop');
+                if (menu.classList.contains('opacity-100')) {
+                  menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                  menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+                  backdrop.classList.add('opacity-0', 'pointer-events-none');
+                  backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+                  fab.classList.remove('rotate-45');
+                  fab.setAttribute('aria-expanded', 'false');
+                }
+              }}
+              className="fixed inset-0 z-[50] bg-black/20 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300"
+              id="mobile-fab-backdrop"
+            ></div>
+          </div>
+        )}
 
         {/* Hero Section */}
         <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
