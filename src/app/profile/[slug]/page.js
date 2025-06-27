@@ -180,22 +180,6 @@ export default function ProfilePage() {
               </div>
               
               <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                  <span className="text-gray-600 text-sm sm:text-base mb-2 sm:mb-0 font-medium">Role & Permissions</span>
-                  <div className="flex justify-start sm:justify-end">
-                    {profile.role && (
-                      <RoleIndicator 
-                        role={profile.role} 
-                        size="sm" 
-                        showPermissions={true} 
-                        variant="badge"
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:justify-between">
                   <span className="text-gray-600 text-sm sm:text-base mb-1 sm:mb-0 font-medium">Account Type</span>
                   <div className="text-sm sm:text-base">
@@ -277,25 +261,6 @@ export default function ProfilePage() {
                     }) : 'Unknown'}
                   </span>
                 </div>
-              </div>
-              
-              {/* Additional Account Info */}
-              <div className="pt-2 space-y-3">
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 sm:p-4 border border-gray-200">
-                  <div className="text-xs sm:text-sm text-gray-600 mb-2 font-medium">Profile ID</div>
-                  <div className="text-xs sm:text-sm font-mono text-gray-800 break-all bg-white px-2 py-1 rounded border">
-                    {profile._id || 'N/A'}
-                  </div>
-                </div>
-                
-                {isOwnProfile && (
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 sm:p-4 border border-blue-200">
-                    <div className="flex items-center text-xs sm:text-sm text-blue-800">
-                      <span className="mr-2 text-base">👤</span>
-                      <span className="font-medium">This is your profile</span>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
