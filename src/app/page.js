@@ -138,6 +138,15 @@ export default function Home() {
                         <span className="hidden sm:inline">Upload Data</span>
                       </button>
                     </RoleProtected>
+                    <RoleProtected requiredRole="superAdmin">
+                      <button
+                        onClick={() => router.push('/user-management')}
+                        className="flex-1 sm:flex-initial bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-xs sm:text-sm min-h-[40px] flex items-center justify-center"
+                      >
+                        <span className="sm:hidden">Users</span>
+                        <span className="hidden sm:inline">Manage Users</span>
+                      </button>
+                    </RoleProtected>
                     <button
                       onClick={() => router.push(`/profile/${user.username}`)}
                       className="flex-1 sm:flex-initial bg-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm min-h-[40px] flex items-center justify-center"

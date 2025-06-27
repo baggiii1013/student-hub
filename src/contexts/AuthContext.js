@@ -36,7 +36,31 @@ export function AuthProvider({ children }) {
       const username = localStorage.getItem('username');
       
       if (token && username) {
-        setUser({ username, token });
+        try {
+          // Decode JWT token to get full user information
+          const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+          const userInfo = tokenPayload.user;
+          
+          // Check if token is still valid (not expired)
+          const currentTime = Date.now() / 1000;
+          if (tokenPayload.exp && tokenPayload.exp > currentTime) {
+            setUser({
+              id: userInfo.id,
+              username: userInfo.username,
+              email: userInfo.email,
+              role: userInfo.role,
+              token
+            });
+          } else {
+            // Token expired, clear it
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+          }
+        } catch (error) {
+          console.error('Error decoding stored JWT token:', error);
+          // Fallback to basic user info if token can't be decoded
+          setUser({ username, token });
+        }
       }
       setLoading(false);
     }
@@ -45,9 +69,29 @@ export function AuthProvider({ children }) {
   const login = (token, username) => {
     // This function is for legacy JWT login
     // OAuth login is handled by NextAuth
-    localStorage.setItem('token', token);
-    localStorage.setItem('username', username);
-    setUser({ username, token });
+    try {
+      // Decode JWT token to get full user information
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      const userInfo = tokenPayload.user;
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('username', username);
+      
+      // Set user with full information from the token
+      setUser({
+        id: userInfo.id,
+        username: userInfo.username,
+        email: userInfo.email,
+        role: userInfo.role,
+        token
+      });
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      // Fallback to basic user info
+      localStorage.setItem('token', token);
+      localStorage.setItem('username', username);
+      setUser({ username, token });
+    }
     router.push('/');
   };
 

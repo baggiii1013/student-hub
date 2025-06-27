@@ -14,6 +14,7 @@ async function apiCall(endpoint, options = {}) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...defaultOptions,
     ...options,
+    credentials: 'include', // Include cookies for session authentication
     headers: {
       ...defaultOptions.headers,
       ...options.headers,
@@ -21,8 +22,17 @@ async function apiCall(endpoint, options = {}) {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'API call failed');
+    let errorMessage = 'API call failed';
+    
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.message || errorData.error || errorMessage;
+    } catch (parseError) {
+      // If response is not JSON, use status text or generic message
+      errorMessage = response.statusText || `HTTP ${response.status} Error`;
+    }
+    
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -68,6 +78,36 @@ export const studentAPI = {
   },
 };
 
+// User Management API functions
+export const userManagementAPI = {
+  getUsers: async (page = 1, limit = 10) => {
+    // For user management, we don't need to manually add tokens as it should work with session cookies
+    return apiCall(`/users/manage?page=${page}&limit=${limit}`);
+  },
+  
+  updateUserRole: async (userId, role) => {
+    if (!userId || !role) {
+      throw new Error('User ID and role are required');
+    }
+    
+    return apiCall('/users/manage', {
+      method: 'PUT',
+      body: JSON.stringify({ userId, role }),
+    });
+  },
+  
+  deleteUser: async (userId) => {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    
+    return apiCall('/users/manage', {
+      method: 'DELETE',
+      body: JSON.stringify({ userId }),
+    });
+  },
+};
+
 // General API object for making custom requests
 export const api = {
   get: async (endpoint) => {
@@ -93,5 +133,5 @@ export const api = {
   },
 };
 
-const apiModule = { api, authAPI, studentAPI };
+const apiModule = { api, authAPI, studentAPI, userManagementAPI };
 export default apiModule;
