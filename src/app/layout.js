@@ -27,16 +27,20 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SpeedInsights/>
         <Analytics/>
         <NextAuthProvider>
           <AuthProvider>
-            <div className="flex-1">
-              {children}
+            <div className="min-h-screen flex flex-col">
+              <div className="flex-1 md:pb-20 lg:pb-24">
+                {children}
+              </div>
+              <div className="md:fixed md:bottom-0 md:left-0 md:right-0 md:z-50 md:h-20 lg:h-24">
+                <Footer />
+              </div>
             </div>
-            <Footer />
             <ToastProvider />
           </AuthProvider>
         </NextAuthProvider>

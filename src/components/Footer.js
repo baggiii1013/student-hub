@@ -2,10 +2,10 @@
 
 export default function Footer() {
   return (
-    <footer className="relative z-10 mt-auto py-6 border-t border-gray-700/50 bg-gray-900/80 backdrop-blur-sm">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <footer className="relative z-10 mt-auto py-6 border-t border-gray-700/50 bg-gray-900/95 backdrop-blur-sm md:w-full h-full flex items-center">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex items-center justify-center gap-2 text-gray-400">
-          <span className="text-sm">Created by</span>
+          <span className="text-sm">Designed and Developed by</span>
           <a
             href="https://github.com/baggiii1013"
             target="_blank"
@@ -24,7 +24,7 @@ export default function Footer() {
                 clipRule="evenodd"
               />
             </svg>
-            baggiii1013
+            Kaustubh Bagale
           </a>
         </div>
       </div>

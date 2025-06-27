@@ -1,6 +1,5 @@
 'use client';
 
-
 import RoleIndicator from '@/components/RoleIndicator';
 import RoleProtected from '@/components/RoleProtected';
 import RoleStatsCard from '@/components/RoleStatsCard';
@@ -70,7 +69,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-[97vh] bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 relative">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 relative">
       {/* Hyperspeed background */}
       <div className="fixed inset-0 z-0">
         <Hyperspeed
