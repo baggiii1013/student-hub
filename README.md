@@ -90,7 +90,7 @@ To get started with the student-hub, follow these steps:
 
 1. **Clone the repository** (if not already done):
    ```bash
-   cd /mnt/240GB_SATA/Development/student-hub/nextjs-student-hub
+   git clone github.com/baggiii1013/student-hub/
    ```
 
 2. **Install dependencies**:
@@ -101,8 +101,16 @@ To get started with the student-hub, follow these steps:
 3. **Environment Setup**:
    The `.env.local` file is already configured with:
    ```
-   MONGODB_URI=mongodb+srv://admin:root@cluster0.xvfnikd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+   MONGODB_URI=mongodb+srv://admin:root@student-hub.fdzm8io.mongodb.net/?retryWrites=true&w=majority&appName=student-hub
    JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-12345
+
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your-super-secret-nextauth-key-change-this-in-production-67890
+
+   # Google OAuth Configuration
+   # You need to create these in Google Cloud Console
+   GOOGLE_CLIENT_ID=235234534EXAMPLE.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=YOUR_SECRET_CLIENT_ID
    ```
 
 4. **Start the development server**:
@@ -161,10 +169,7 @@ nextjs-student-hub/
 ### Student Search
 1. After logging in, use the search bar on the home page
 2. Search by:
-   - Student name (e.g., "Mohit")
    - UG number (e.g., "24UG050281")
-   - Branch (e.g., "AI", "CSE")
-   - Any combination of the above
 
 ## Key Features
 
@@ -198,53 +203,6 @@ npm start
 npm run lint
 ```
 
-### Usage
-
-Here are some examples of how to use the student-hub:
-
-* Basic usage: `npm run dev` or `yarn dev` to start the development server.
-* Code snippets:
-```javascript
-import { useState } from 'react';
-import { get } from 'next-api';
-
-const App = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchData = async () => {
-    setLoading(true);
-    const response = await get('/api/data');
-    setData(response.data);
-    setLoading(false);
-  };
-
-  return (
-    <div>
-      <button onClick={fetchData}>Fetch Data</button>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <ul>
-          {data.map((item) => (
-            <li key={item.id}>{item.name}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-};
-```
-* Configuration examples:
-```json
-{
-  "env": {
-    "MONGODB_URI": "mongodb://localhost:27017/student-hub",
-    "NEXTAUTH_SECRET": "your-nextauth-secret",
-    "NEXTAUTH_URL": "http://localhost:3000"
-  }
-}
-```
 * Common use cases and workflows:
 
 ## Production Deployment
