@@ -1,5 +1,3 @@
-Here is the COMPLETE README.md file for the student-hub repository:
-
 <div align="center">
 
 # 🚀 student-hub
