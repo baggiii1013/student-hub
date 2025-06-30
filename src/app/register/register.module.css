@@ -1,0 +1,173 @@
+/* Critical styles for register page to reduce CLS */
+.container {
+  min-height: 100vh;
+  background-color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.backgroundOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom right, rgba(147, 51, 234, 0.2), rgba(219, 39, 119, 0.2));
+}
+
+.contentWrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 28rem;
+  padding: 0.75rem 1rem;
+}
+
+.formContainer {
+  background: rgba(17, 24, 39, 0.95);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.subtitle {
+  color: rgb(209, 213, 219);
+  font-size: 0.875rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.inputGroup {
+  margin-bottom: 1rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(209, 213, 219);
+  margin-bottom: 0.5rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(55, 65, 81, 0.5);
+  border: 1px solid rgb(75, 85, 99);
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 16px; /* Prevent iOS zoom */
+  min-height: 44px;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: rgb(147, 51, 234);
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2);
+}
+
+.input::placeholder {
+  color: rgb(156, 163, 175);
+}
+
+.button {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  border: none;
+}
+
+.buttonPrimary {
+  background-color: rgb(147, 51, 234);
+  color: white;
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background-color: rgb(126, 34, 206);
+}
+
+.buttonSecondary {
+  background-color: rgb(75, 85, 99);
+  color: white;
+}
+
+.buttonSecondary:hover:not(:disabled) {
+  background-color: rgb(55, 65, 81);
+}
+
+.buttonWhite {
+  background-color: white;
+  color: rgb(17, 24, 39);
+}
+
+.buttonWhite:hover:not(:disabled) {
+  background-color: rgb(249, 250, 251);
+}
+
+.buttonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fadeIn {
+  transform: translateY(0);
+  opacity: 1;
+  transition: all 0.5s ease-out;
+}
+
+.fadeOut {
+  transform: translateY(1rem);
+  opacity: 0;
+}
+
+/* Responsive adjustments */
+@media (min-width: 640px) {
+  .contentWrapper {
+    padding: 1rem 1.5rem;
+  }
+  
+  .formContainer {
+    padding: 2rem;
+  }
+  
+  .title {
+    font-size: 2.25rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+}
