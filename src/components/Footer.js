@@ -1,21 +1,21 @@
 'use client';
+import styles from './Footer.module.css';
 
 export default function Footer() {
   return (
-    <footer className="relative z-10 mt-auto py-6 border-t border-gray-700/50 bg-gray-900/95 backdrop-blur-sm md:w-full h-full flex items-center">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="flex flex-col items-center justify-center gap-3 text-gray-400">
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-sm">Designed and Developed by</span>
+    <footer className={styles.footer}>
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <div className={styles.developerInfo}>
+            <span className={styles.designedBy}>Designed and Developed by</span>
             <a
               href="https://github.com/baggiii1013"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors duration-300 font-medium"
+              className={styles.githubLink}
             >
               <svg
-                className="w-5 h-5"
-                fill="currentColor"
+                className={styles.githubIcon}
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
@@ -28,7 +28,7 @@ export default function Footer() {
               Kaustubh Bagale
             </a>
           </div>
-          <div className="text-sm text-gray-500">
+          <div className={styles.guidedBy}>
             Guided by: Mohit Rathod sir & Dean Ma&apos;am
           </div>
         </div>

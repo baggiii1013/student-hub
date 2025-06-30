@@ -1,0 +1,49 @@
+/* Layout Styles */
+.body {
+  font-feature-settings: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .main {
+    padding-bottom: 5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main {
+    padding-bottom: 6rem;
+  }
+}
+
+.footer {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    height: 5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer {
+    height: 6rem;
+  }
+}

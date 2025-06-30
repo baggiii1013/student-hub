@@ -1,0 +1,138 @@
+/* Card variant styles */
+.card {
+  background-color: rgba(31, 41, 55, 0.5);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border: 1px solid #374151;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.cardContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cardAvatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.125rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.cardInfo {
+  flex: 1;
+}
+
+.cardUsername {
+  color: white;
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.cardEmail {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.cardActions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cardButtonPrimary {
+  flex: 1;
+  background-color: #7c3aed;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cardButtonPrimary:hover {
+  background-color: #6d28d9;
+}
+
+.cardButtonSecondary {
+  padding: 0.5rem 0.75rem;
+  background-color: #374151;
+  color: #d1d5db;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cardButtonSecondary:hover {
+  background-color: #4b5563;
+}
+
+/* Horizontal variant styles */
+.horizontal {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.horizontalAvatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.horizontalInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.horizontalUsername {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Avatar color variants */
+.avatarBlue {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+}
+
+.avatarGreen {
+  background: linear-gradient(to right, #10b981, #14b8a6);
+}
+
+.avatarPink {
+  background: linear-gradient(to right, #ec4899, #f43f5e);
+}
+
+.avatarOrange {
+  background: linear-gradient(to right, #f97316, #ef4444);
+}
+
+.avatarIndigo {
+  background: linear-gradient(to right, #6366f1, #3b82f6);
+}

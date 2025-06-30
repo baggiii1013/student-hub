@@ -1,0 +1,217 @@
+/* Main container */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #111827, #581c87, #111827);
+  padding: 3rem 0;
+}
+
+.innerContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .innerContainer {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .innerContainer {
+    padding: 0 2rem;
+  }
+}
+
+/* Header section */
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #60a5fa, #a78bfa, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  color: #d1d5db;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+/* Main content */
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+/* Section styles */
+.section {
+  background-color: rgba(31, 41, 55, 0.5);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border: 1px solid #374151;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 1.5rem;
+}
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Subsection styles */
+.subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.subsectionTitle {
+  font-size: 1.125rem;
+  color: #d1d5db;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.indicatorRow {
+  display: flex;
+  align-items: center;
+}
+
+/* User profile grid */
+.userGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .userGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .userGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* User card */
+.userCard {
+  background-color: rgba(55, 65, 81, 0.5);
+  border: 1px solid #4b5563;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.userHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.userAvatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+}
+
+.userInfo h4 {
+  color: white;
+  font-weight: 500;
+  margin: 0;
+}
+
+.userInfo p {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.userRoleSection {
+  margin-bottom: 0.75rem;
+}
+
+.userBadgeSection {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Permission matrix table */
+.tableContainer {
+  overflow-x: auto;
+}
+
+.permissionTable {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.tableHeader {
+  border-bottom: 1px solid #4b5563;
+}
+
+.tableHeaderCell {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  color: #d1d5db;
+}
+
+.tableHeaderCellCenter {
+  text-align: center;
+  padding: 0.75rem 1rem;
+  color: #d1d5db;
+}
+
+.tableRow {
+  border-bottom: 1px solid #374151;
+}
+
+.tableCell {
+  padding: 0.75rem 1rem;
+}
+
+.tableCellCenter {
+  text-align: center;
+  padding: 0.75rem 1rem;
+}
+
+.permissionIcon {
+  font-weight: 600;
+}
+
+.permissionAllowed {
+  color: #4ade80;
+}
+
+.permissionDenied {
+  color: #f87171;
+}

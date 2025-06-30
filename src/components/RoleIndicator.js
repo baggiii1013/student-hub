@@ -1,6 +1,7 @@
 'use client';
 
 import { useRole } from '@/hooks/useRole';
+import styles from './RoleIndicator.module.css';
 
 export default function RoleIndicator({ showPermissions = true, size = 'md', variant = 'pill', role: propRole }) {
   const { role: hookRole, roleDisplayName: hookRoleDisplayName, isAdmin, isSuperAdmin, canUpload, canManageUsers, canEditStudents, canDeleteStudents } = useRole();
@@ -34,51 +35,34 @@ export default function RoleIndicator({ showPermissions = true, size = 'md', var
     return permissions;
   };
 
-  const getRoleColor = () => {
-    switch (role) {
-      case 'superAdmin':
-        return 'bg-gradient-to-r from-red-500 to-pink-500 shadow-red-500/25';
-      case 'admin':
-        return 'bg-gradient-to-r from-purple-500 to-indigo-500 shadow-purple-500/25';
-      case 'user':
-      default:
-        return 'bg-gradient-to-r from-blue-500 to-cyan-500 shadow-blue-500/25';
-    }
+  const getRoleClassName = () => {
+    const baseRole = role === 'superAdmin' ? 'superAdmin' : 
+                    role === 'admin' ? 'admin' : 'user';
+    const variantSuffix = variant === 'badge' ? 'Badge' : 'Pill';
+    return styles[baseRole + variantSuffix];
   };
 
-  const getRoleColorLight = () => {
-    switch (role) {
-      case 'superAdmin':
-        return 'bg-gradient-to-r from-red-100 to-pink-100 text-red-700 border-red-200';
-      case 'admin':
-        return 'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border-purple-200';
-      case 'user':
-      default:
-        return 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 border-blue-200';
-    }
-  };
-
-  const getSizeClasses = () => {
+  const getSizeClassName = () => {
     switch (size) {
       case 'sm':
-        return 'text-xs px-2 py-1';
+        return styles.sizeSm;
       case 'lg':
-        return 'text-base px-4 py-2';
+        return styles.sizeLg;
       case 'md':
       default:
-        return 'text-sm px-3 py-1.5';
+        return styles.sizeMd;
     }
   };
 
-  const getIconSize = () => {
+  const getIconClassName = () => {
     switch (size) {
       case 'sm':
-        return 'w-3 h-3';
+        return styles.iconSm;
       case 'lg':
-        return 'w-5 h-5';
+        return styles.iconLg;
       case 'md':
       default:
-        return 'w-4 h-4';
+        return styles.iconMd;
     }
   };
 
@@ -88,20 +72,20 @@ export default function RoleIndicator({ showPermissions = true, size = 'md', var
     
     if (isSuperAdminRole) {
       return (
-        <svg className={getIconSize()} fill="currentColor" viewBox="0 0 24 24">
+        <svg className={getIconClassName()} viewBox="0 0 24 24">
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
         </svg>
       );
     }
     if (isAdminRole) {
       return (
-        <svg className={getIconSize()} fill="currentColor" viewBox="0 0 24 24">
+        <svg className={getIconClassName()} viewBox="0 0 24 24">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
         </svg>
       );
     }
     return (
-      <svg className={getIconSize()} fill="currentColor" viewBox="0 0 24 24">
+      <svg className={getIconClassName()} viewBox="0 0 24 24">
         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
       </svg>
     );
@@ -120,34 +104,34 @@ export default function RoleIndicator({ showPermissions = true, size = 'md', var
     return permissions;
   };
 
-  const getBadgeColor = (permission) => {
+  const getPermissionClassName = (permission) => {
     switch (permission) {
       case 'Upload Data':
-        return 'bg-green-100 text-green-700 border-green-200';
+        return styles.uploadData;
       case 'Manage Users':
-        return 'bg-purple-100 text-purple-700 border-purple-200';
+        return styles.manageUsers;
       case 'Edit Students':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
+        return styles.editStudents;
       case 'Delete Students':
-        return 'bg-red-100 text-red-700 border-red-200';
+        return styles.deleteStudents;
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return styles.defaultPermission;
     }
   };
 
   if (variant === 'badge') {
     return (
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className={`inline-flex items-center gap-1.5 ${getSizeClasses()} rounded-full border font-medium ${getRoleColorLight()}`}>
+      <div className={styles.badgeContainer}>
+        <div className={`${styles.roleIndicator} ${styles.badgeVariant} ${getSizeClassName()} ${getRoleClassName()}`}>
           {getRoleIcon()}
           <span>{roleDisplayName}</span>
         </div>
         {showPermissions && getPermissionsList().length > 0 && (
-          <div className="flex gap-1 flex-wrap">
+          <div className={styles.permissionsContainer}>
             {getPermissionsList().map((permission) => (
               <span
                 key={permission}
-                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getBadgeColor(permission)}`}
+                className={`${styles.permissionBadge} ${getPermissionClassName(permission)}`}
               >
                 {permission}
               </span>
@@ -160,17 +144,17 @@ export default function RoleIndicator({ showPermissions = true, size = 'md', var
 
   // Default pill variant
   return (
-    <div className="inline-flex items-center gap-3">
-      <div className={`flex items-center gap-1.5 ${getSizeClasses()} rounded-full text-white font-medium shadow-lg ${getRoleColor()}`}>
+    <div className={styles.pillContainer}>
+      <div className={`${styles.roleIndicator} ${styles.pillVariant} ${getSizeClassName()} ${getRoleClassName()}`}>
         {getRoleIcon()}
         <span>{roleDisplayName}</span>
       </div>
       {showPermissions && getPermissionsList().length > 0 && (
-        <div className="flex gap-1.5 flex-wrap">
+        <div className={`${styles.permissionsContainer} ${styles.permissionsContainerPill}`}>
           {getPermissionsList().map((permission) => (
             <span
               key={permission}
-              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getBadgeColor(permission)}`}
+              className={`${styles.permissionBadge} ${styles.permissionBadgePill} ${getPermissionClassName(permission)}`}
             >
               {permission}
             </span>

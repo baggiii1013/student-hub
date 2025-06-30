@@ -7,6 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+import styles from "./layout.module.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,17 +28,17 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${styles.body}`}
       >
         <SpeedInsights/>
         <Analytics/>
         <NextAuthProvider>
           <AuthProvider>
-            <div className="min-h-screen flex flex-col">
-              <div className="flex-1 md:pb-20 lg:pb-24">
+            <div className={styles.container}>
+              <div className={styles.main}>
                 {children}
               </div>
-              <div className="md:fixed md:bottom-0 md:left-0 md:right-0 md:z-50 md:h-20 lg:h-24">
+              <div className={styles.footer}>
                 <Footer />
               </div>
             </div>

@@ -10,6 +10,7 @@ import { useRole } from '@/hooks/useRole';
 import { studentAPI } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import styles from './page.module.css';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,9 +70,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 relative">
+    <div className={styles.container}>
       {/* Hyperspeed background */}
-      <div className="fixed inset-0 z-0">
+      <div className={styles.hyperspeedBackground}>
         <Hyperspeed
           ref={hyperspeedRef}
           effectOptions={{
@@ -115,26 +116,26 @@ export default function Home() {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10">
+      <div className={styles.mainContent}>
         {/* Header with conditional auth buttons */}
-        <header className="pt-4 sm:pt-6 md:pt-8 pb-4 sm:pb-6">
-          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent text-center sm:text-left">
+        <header className={styles.header}>
+          <div className={styles.headerContainer}>
+            <div className={styles.headerContent}>
+              <h1 className={styles.title}>
                 Student Hub
               </h1>
               {user ? (
-                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 w-full sm:w-auto">
-                  <div className="hidden sm:block">
+                <div className={styles.userSection}>
+                  <div className={styles.userProfileHidden}>
                     <UserProfileSection variant="horizontal" />
                   </div>
                   
                   {/* Desktop Button Layout */}
-                  <div className="hidden sm:flex items-center gap-3 w-full sm:w-auto">
+                  <div className={styles.desktopButtons}>
                     <RoleProtected requiredRole="admin">
                       <button
                         onClick={() => router.push('/upload')}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 text-sm transform hover:scale-105 active:scale-95"
+                        className={`${styles.button} ${styles.buttonGreen}`}
                       >
                         Upload Data
                       </button>
@@ -142,27 +143,27 @@ export default function Home() {
                     <RoleProtected requiredRole="superAdmin">
                       <button
                         onClick={() => router.push('/user-management')}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 text-sm transform hover:scale-105 active:scale-95"
+                        className={`${styles.button} ${styles.buttonIndigo}`}
                       >
                         Manage Users
                       </button>
                     </RoleProtected>
                     <button
                       onClick={() => router.push(`/profile/${user.username}`)}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-all duration-200 text-sm transform hover:scale-105 active:scale-95"
+                      className={`${styles.button} ${styles.buttonPurple}`}
                     >
                       Profile
                     </button>
                     <button
                       onClick={logout}
-                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-200 text-sm transform hover:scale-105 active:scale-95"
+                      className={`${styles.button} ${styles.buttonRed}`}
                     >
                       Logout
                     </button>
                   </div>
                   
                   {/* Mobile Profile Section */}
-                  <div className="block sm:hidden w-full">
+                  <div className={styles.mobileProfile}>
                     <UserProfileSection variant="horizontal" />
                   </div>
                 </div>
@@ -175,53 +176,49 @@ export default function Home() {
 
         {/* Mobile Floating Action Menu */}
         {user && (
-          <div className="sm:hidden">
+          <div className={styles.mobileOnly}>
             {/* Floating Action Button */}
-            <div className="fixed bottom-20 right-6 z-[60]">
-              <div className="relative">
+            <div className={styles.fab}>
+              <div>
                 {/* Main FAB */}
                 <button
                   onClick={() => {
                     const menu = document.getElementById('mobile-fab-menu');
                     const fab = document.getElementById('mobile-fab-button');
                     const backdrop = document.getElementById('mobile-fab-backdrop');
-                    const isOpen = menu.classList.contains('opacity-100');
+                    const isOpen = menu.classList.contains(styles.fabMenuOpen);
                     
                     if (isOpen) {
-                      menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-                      menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-                      backdrop.classList.add('opacity-0', 'pointer-events-none');
-                      backdrop.classList.remove('opacity-100', 'pointer-events-auto');
-                      fab.classList.remove('rotate-45');
+                      menu.classList.remove(styles.fabMenuOpen);
+                      backdrop.classList.remove(styles.fabBackdropOpen);
+                      fab.querySelector(`.${styles.fabIcon}`).classList.remove(styles.fabIconRotated);
                       fab.setAttribute('aria-expanded', 'false');
                     } else {
-                      menu.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-                      menu.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
-                      backdrop.classList.remove('opacity-0', 'pointer-events-none');
-                      backdrop.classList.add('opacity-100', 'pointer-events-auto');
-                      fab.classList.add('rotate-45');
+                      menu.classList.add(styles.fabMenuOpen);
+                      backdrop.classList.add(styles.fabBackdropOpen);
+                      fab.querySelector(`.${styles.fabIcon}`).classList.add(styles.fabIconRotated);
                       fab.setAttribute('aria-expanded', 'true');
                     }
                   }}
                   id="mobile-fab-button"
                   aria-label="Open menu"
                   aria-expanded="false"
-                  className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center touch-manipulation transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-300"
+                  className={styles.fabButton}
                 >
-                  <span className="text-2xl transition-transform duration-300" aria-hidden="true">⚡</span>
+                  <span className={styles.fabIcon} aria-hidden="true">⚡</span>
                 </button>
 
                 {/* FAB Menu */}
                 <div
                   id="mobile-fab-menu"
-                  className="absolute bottom-20 right-0 opacity-0 pointer-events-none scale-95 transition-all duration-300 origin-bottom-right z-10"
+                  className={styles.fabMenu}
                   role="menu"
                   aria-label="Navigation actions"
                 >
-                  <div className="flex flex-col gap-3 items-end">
+                  <div className={styles.fabMenuItems}>
                     {/* Profile */}
-                    <div className="flex items-center gap-2 fab-menu-item">
-                      <div className="bg-black/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
+                    <div className={styles.fabMenuItem}>
+                      <div className={styles.fabMenuLabel}>
                         Profile
                       </div>
                       <button
@@ -230,26 +227,24 @@ export default function Home() {
                           const menu = document.getElementById('mobile-fab-menu');
                           const fab = document.getElementById('mobile-fab-button');
                           const backdrop = document.getElementById('mobile-fab-backdrop');
-                          menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-                          menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-                          backdrop.classList.add('opacity-0', 'pointer-events-none');
-                          backdrop.classList.remove('opacity-100', 'pointer-events-auto');
-                          fab.classList.remove('rotate-45');
+                          menu.classList.remove(styles.fabMenuOpen);
+                          backdrop.classList.remove(styles.fabBackdropOpen);
+                          fab.querySelector(`.${styles.fabIcon}`).classList.remove(styles.fabIconRotated);
                           fab.setAttribute('aria-expanded', 'false');
                           router.push(`/profile/${user.username}`);
                         }}
                         role="menuitem"
                         aria-label="View your profile"
-                        className="w-12 h-12 bg-white border-2 border-purple-600 text-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center touch-manipulation transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-300"
+                        className={`${styles.fabMenuButton} ${styles.fabMenuButtonPurple}`}
                       >
-                        <span className="text-lg" aria-hidden="true">👤</span>
+                        <span aria-hidden="true">👤</span>
                       </button>
                     </div>
 
                     {/* Upload Data (for admins) */}
                     <RoleProtected requiredRole="admin">
-                      <div className="flex items-center gap-2 fab-menu-item">
-                        <div className="bg-black/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
+                      <div className={styles.fabMenuItem}>
+                        <div className={styles.fabMenuLabel}>
                           Upload Data
                         </div>
                         <button
@@ -258,27 +253,25 @@ export default function Home() {
                             const menu = document.getElementById('mobile-fab-menu');
                             const fab = document.getElementById('mobile-fab-button');
                             const backdrop = document.getElementById('mobile-fab-backdrop');
-                            menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-                            menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-                            backdrop.classList.add('opacity-0', 'pointer-events-none');
-                            backdrop.classList.remove('opacity-100', 'pointer-events-auto');
-                            fab.classList.remove('rotate-45');
+                            menu.classList.remove(styles.fabMenuOpen);
+                            backdrop.classList.remove(styles.fabBackdropOpen);
+                            fab.querySelector(`.${styles.fabIcon}`).classList.remove(styles.fabIconRotated);
                             fab.setAttribute('aria-expanded', 'false');
                             router.push('/upload');
                           }}
                           role="menuitem"
                           aria-label="Upload student data"
-                          className="w-12 h-12 bg-white border-2 border-green-600 text-green-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center touch-manipulation transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-green-300"
+                          className={`${styles.fabMenuButton} ${styles.fabMenuButtonGreen}`}
                         >
-                          <span className="text-lg" aria-hidden="true">📤</span>
+                          <span aria-hidden="true">📤</span>
                         </button>
                       </div>
                     </RoleProtected>
 
                     {/* User Management (for superAdmins) */}
                     <RoleProtected requiredRole="superAdmin">
-                      <div className="flex items-center gap-2 fab-menu-item">
-                        <div className="bg-black/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
+                      <div className={styles.fabMenuItem}>
+                        <div className={styles.fabMenuLabel}>
                           Manage Users
                         </div>
                         <button
@@ -287,26 +280,24 @@ export default function Home() {
                             const menu = document.getElementById('mobile-fab-menu');
                             const fab = document.getElementById('mobile-fab-button');
                             const backdrop = document.getElementById('mobile-fab-backdrop');
-                            menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-                            menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-                            backdrop.classList.add('opacity-0', 'pointer-events-none');
-                            backdrop.classList.remove('opacity-100', 'pointer-events-auto');
-                            fab.classList.remove('rotate-45');
+                            menu.classList.remove(styles.fabMenuOpen);
+                            backdrop.classList.remove(styles.fabBackdropOpen);
+                            fab.querySelector(`.${styles.fabIcon}`).classList.remove(styles.fabIconRotated);
                             fab.setAttribute('aria-expanded', 'false');
                             router.push('/user-management');
                           }}
                           role="menuitem"
                           aria-label="Manage users"
-                          className="w-12 h-12 bg-white border-2 border-indigo-600 text-indigo-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center touch-manipulation transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-indigo-300"
+                          className={`${styles.fabMenuButton} ${styles.fabMenuButtonIndigo}`}
                         >
-                          <span className="text-lg" aria-hidden="true">👥</span>
+                          <span aria-hidden="true">👥</span>
                         </button>
                       </div>
                     </RoleProtected>
 
                     {/* Logout */}
-                    <div className="flex items-center gap-2 fab-menu-item">
-                      <div className="bg-black/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
+                    <div className={styles.fabMenuItem}>
+                      <div className={styles.fabMenuLabel}>
                         Logout
                       </div>
                       <button
@@ -315,19 +306,17 @@ export default function Home() {
                           const menu = document.getElementById('mobile-fab-menu');
                           const fab = document.getElementById('mobile-fab-button');
                           const backdrop = document.getElementById('mobile-fab-backdrop');
-                          menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-                          menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-                          backdrop.classList.add('opacity-0', 'pointer-events-none');
-                          backdrop.classList.remove('opacity-100', 'pointer-events-auto');
-                          fab.classList.remove('rotate-45');
+                          menu.classList.remove(styles.fabMenuOpen);
+                          backdrop.classList.remove(styles.fabBackdropOpen);
+                          fab.querySelector(`.${styles.fabIcon}`).classList.remove(styles.fabIconRotated);
                           fab.setAttribute('aria-expanded', 'false');
                           logout();
                         }}
                         role="menuitem"
                         aria-label="Logout"
-                        className="w-12 h-12 bg-white border-2 border-red-600 text-red-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center touch-manipulation transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-red-300"
+                        className={`${styles.fabMenuButton} ${styles.fabMenuButtonRed}`}
                       >
-                        <span className="text-lg" aria-hidden="true">🚪</span>
+                        <span aria-hidden="true">🚪</span>
                       </button>
                     </div>
                   </div>
@@ -341,28 +330,26 @@ export default function Home() {
                 const menu = document.getElementById('mobile-fab-menu');
                 const fab = document.getElementById('mobile-fab-button');
                 const backdrop = document.getElementById('mobile-fab-backdrop');
-                if (menu.classList.contains('opacity-100')) {
-                  menu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-                  menu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-                  backdrop.classList.add('opacity-0', 'pointer-events-none');
-                  backdrop.classList.remove('opacity-100', 'pointer-events-auto');
-                  fab.classList.remove('rotate-45');
+                if (menu.classList.contains(styles.fabMenuOpen)) {
+                  menu.classList.remove(styles.fabMenuOpen);
+                  backdrop.classList.remove(styles.fabBackdropOpen);
+                  fab.querySelector(`.${styles.fabIcon}`).classList.remove(styles.fabIconRotated);
                   fab.setAttribute('aria-expanded', 'false');
                 }
               }}
-              className="fixed inset-0 z-[50] bg-black/20 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300"
+              className={styles.fabBackdrop}
               id="mobile-fab-backdrop"
             ></div>
           </div>
         )}
 
         {/* Hero Section */}
-        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className={`text-center transform transition-all duration-1000 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} mb-6 sm:mb-8 md:mb-12`}>
-            <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse">
+        <div className={styles.heroContainer}>
+          <div className={`${styles.heroContent} ${mounted ? styles.heroContentVisible : ''}`}>
+            <h2 className={styles.heroTitle}>
               Find Student Info
             </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
+            <p className={styles.heroSubtitle}>
               Connect, discover, and collaborate with students across campus. 
               Enter the exact UG number to find student information.
             </p>
@@ -371,33 +358,33 @@ export default function Home() {
 
         {/* Role Stats Section */}
         {user && (
-          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 mb-6 sm:mb-8">
-            <div className={`max-w-2xl mx-auto transform transition-all duration-1000 delay-150 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+          <div className={styles.roleStatsSection}>
+            <div className={`${styles.roleStatsContent} ${mounted ? styles.roleStatsContentVisible : ''}`}>
               <RoleStatsCard />
             </div>
           </div>
         )}
 
         {/* Search Section */}
-        <main className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-12">
-          <div className={`max-w-4xl mx-auto transform transition-all duration-1000 delay-300 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+        <main className={styles.searchMain}>
+          <div className={`${styles.searchContent} ${mounted ? styles.searchContentVisible : ''}`}>
             {/* Search Form */}
-            <form onSubmit={handleSearch} className="mb-6 sm:mb-8 md:mb-12">
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl sm:rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-                  <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-700">
-                    <div className="flex flex-col gap-3 sm:gap-4">
-                      <div className="flex-1 relative">
+            <form onSubmit={handleSearch} className={styles.searchForm}>
+                <div className={styles.searchFormGroup}>
+                  <div className={styles.searchFormGroupGlow}></div>
+                  <div className={styles.searchFormContainer}>
+                    <div className={styles.searchFormFields}>
+                      <div className={styles.searchInputContainer}>
                         <input
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Enter exact UG number (e.g., UG/2023/001)..."
-                          className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-3.5 md:py-4 bg-gray-700/50 border border-gray-600 rounded-lg sm:rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base md:text-lg min-h-[48px]"
+                          className={styles.searchInput}
                           style={{fontSize: '16px'}}
                         />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 sm:pr-4 md:pr-6 pointer-events-none">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className={styles.searchInputIcon}>
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
                         </div>
@@ -405,12 +392,12 @@ export default function Home() {
                       <button
                         type="submit"
                         disabled={isSearching}
-                        className="w-full px-4 sm:px-6 md:px-8 py-3 sm:py-3.5 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg sm:rounded-xl hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm sm:text-base md:text-lg min-h-[48px] flex items-center justify-center"
+                        className={styles.searchButton}
                       >
                         {isSearching ? (
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-sm sm:text-base">Searching...</span>
+                          <div className={styles.searchButtonLoading}>
+                            <div className={styles.searchButtonSpinner}></div>
+                            <span className={styles.searchButtonText}>Searching...</span>
                           </div>
                         ) : (
                           'Find Student'
@@ -423,15 +410,15 @@ export default function Home() {
 
               {/* Search Results */}
               {searchQuery.trim() && searchResults.length === 0 && !isSearching && (
-                <div className="text-center py-6 sm:py-8 md:py-12">
-                  <div className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 md:p-8 border border-gray-700 max-w-md mx-auto">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                      <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className={styles.noResults}>
+                  <div className={styles.noResultsCard}>
+                    <div className={styles.noResultsIcon}>
+                      <svg className={styles.noResultsIconSvg} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.467-.881-6.077-2.33l-.853-.854A7.962 7.962 0 016 6c0-2.21.895-4.21 2.343-5.657L9.172 1.172a4 4 0 015.656 0L15.657.343A7.962 7.962 0 0118 6a7.96 7.96 0 01-.93 3.77l-.854.853z" />
                       </svg>
                     </div>
-                    <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-2">No Student Found</h3>
-                    <p className="text-gray-300 text-sm sm:text-base break-words">
+                    <h3 className={styles.noResultsTitle}>No Student Found</h3>
+                    <p className={styles.noResultsText}>
                       No student found with UG number &quot;{searchQuery.trim()}&quot;. 
                       Please check the UG number and try again.
                     </p>
@@ -440,82 +427,82 @@ export default function Home() {
               )}
               
               {searchResults.length > 0 && (
-                <div className="space-y-4 sm:space-y-6">
-                  <h2 className="text-base sm:text-lg md:text-2xl lg:text-3xl font-bold text-white mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 px-1 sm:px-2">
-                    <span className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className={styles.searchResults}>
+                  <h2 className={styles.searchResultsTitle}>
+                    <span className={styles.searchResultsIcon}>
+                      <svg className={styles.searchResultsIconSvg} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                     </span>
-                    <span className="text-sm sm:text-base md:text-lg">
+                    <span className={styles.searchResultsTitleText}>
                       Student Found
                     </span>
                   </h2>
-                  <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className={styles.searchResultsGrid}>
                     {searchResults.map((student, index) => (
                       <div
                         key={student._id}
-                        className={`transform transition-all duration-500 hover:scale-105 cursor-pointer ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
+                        className={`${styles.studentCard} ${mounted ? styles.studentCardVisible : ''}`}
                         style={{ animationDelay: `${index * 100}ms` }}
                         onClick={() => router.push(`/student/${student.ugNumber}`)}
                       >
-                        <div className="bg-gray-800/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300 group h-full">
-                          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base md:text-lg flex-shrink-0">
+                        <div className={styles.studentCardInner}>
+                          <div className={styles.studentCardHeader}>
+                            <div className={styles.studentCardAvatar}>
                               {student.name.charAt(0)}
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-white group-hover:text-purple-300 transition-colors truncate">
+                            <div className={styles.studentCardInfo}>
+                              <h3 className={styles.studentCardName}>
                                 {student.name}
                               </h3>
-                              <p className="text-purple-400 font-mono text-xs sm:text-sm truncate">{student.ugNumber}</p>
+                              <p className={styles.studentCardUgNumber}>{student.ugNumber}</p>
                             </div>
                           </div>
                           
-                          <div className="space-y-1 sm:space-y-2 mb-3 sm:mb-4">
-                            <div className="flex items-center gap-1 sm:gap-2 text-gray-300 text-xs sm:text-sm md:text-base">
-                              <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className={styles.studentCardDetails}>
+                            <div className={styles.studentCardDetailItem}>
+                              <svg className={styles.studentCardDetailIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                               </svg>
-                              <span className="truncate text-xs sm:text-sm">{student.branch}</span>
+                              <span className={styles.studentCardDetailText}>{student.branch}</span>
                             </div>
-                            <div className="flex items-center gap-1 sm:gap-2 text-gray-300 text-xs sm:text-sm md:text-base">
-                              <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className={styles.studentCardDetailItem}>
+                              <svg className={styles.studentCardDetailIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
-                              <span className="text-xs sm:text-sm">{student.year}</span>
+                              <span className={styles.studentCardDetailText}>{student.year}</span>
                             </div>
                             {student.division && (
-                              <div className="flex items-center gap-1 sm:gap-2 text-gray-300 text-xs sm:text-sm md:text-base">
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className={styles.studentCardDetailItem}>
+                                <svg className={styles.studentCardDetailIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h1a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <span className="text-xs sm:text-sm">Division {student.division}</span>
+                                <span className={styles.studentCardDetailText}>Division {student.division}</span>
                               </div>
                             )}
                             {student.btechDiploma && (
-                              <div className="flex items-center gap-1 sm:gap-2 text-gray-300 text-xs sm:text-sm md:text-base">
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className={styles.studentCardDetailItem}>
+                                <svg className={styles.studentCardDetailIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                                 </svg>
-                                <span className="text-xs sm:text-sm">{student.btechDiploma}</span>
+                                <span className={styles.studentCardDetailText}>{student.btechDiploma}</span>
                               </div>
                             )}
                             {student.state && (
-                              <div className="flex items-center gap-1 sm:gap-2 text-gray-300 text-xs sm:text-sm md:text-base">
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className={styles.studentCardDetailItem}>
+                                <svg className={styles.studentCardDetailIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                <span className="text-xs sm:text-sm truncate">{student.state}</span>
+                                <span className={styles.studentCardDetailText}>{student.state}</span>
                               </div>
                             )}
                             {student.caste && student.caste !== 'General(open)' && (
-                              <div className="flex items-center gap-1 sm:gap-2 text-gray-300 text-xs sm:text-sm md:text-base">
-                                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className={styles.studentCardDetailItem}>
+                                <svg className={styles.studentCardDetailIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
-                                <span className="text-xs sm:text-sm">{student.caste}</span>
+                                <span className={styles.studentCardDetailText}>{student.caste}</span>
                               </div>
                             )}
                           </div>

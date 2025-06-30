@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import styles from "./page.module.css";
 
 function LoginContent() {
   const [formData, setFormData] = useState({
@@ -182,60 +183,60 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
+    <div className={styles.container}>
       {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -inset-10 opacity-50">
-          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-          <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-1/3 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      <div className={styles.backgroundOverlay}>
+        <div className={styles.backgroundElements}>
+          <div className={styles.blob1}></div>
+          <div className={styles.blob2}></div>
+          <div className={styles.blob3}></div>
         </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-md px-3 sm:px-4 md:px-6">
+      <div className={styles.contentWrapper}>
         <div
-          className={`transform transition-all duration-1000 ${
-            mounted ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+          className={`${styles.formContainer} ${
+            mounted ? styles.formContainerVisible : ""
           }`}
         >
           {/* Logo/Title */}
-          <div className="text-center mb-4 sm:mb-6 md:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+          <div className={styles.header}>
+            <h1 className={styles.title}>
               Student Hub
             </h1>
-            <p className="text-gray-300 text-xs sm:text-sm md:text-base">
+            <p className={styles.subtitle}>
               Welcome back! Please sign in with your Parul University account.
             </p>
-            <div className="mt-3 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-              <p className="text-blue-400 text-xs sm:text-sm">
+            <div className={styles.infoBox}>
+              <p className={styles.infoText}>
                 🏫 Only @paruluniversity.ac.in email addresses are allowed
               </p>
             </div>
-            <div className="mt-2 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-              <p className="text-green-400 text-xs sm:text-sm">
+            <div className={styles.infoBoxGreen}>
+              <p className={styles.infoTextGreen}>
                 📚 Students: Use your student email (13-digit number) to login. Student accounts are pre-configured and cannot register here.
               </p>
             </div>
           </div>
 
           {/* Login Form */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl sm:rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-700">
+          <div className={styles.formCard}>
+            <div className={styles.formCardGlow}></div>
+            <div className={styles.formCardInner}>
               <form
                 onSubmit={handleSubmit}
-                className="space-y-3 sm:space-y-4 md:space-y-6"
+                className={styles.form}
               >
                 {error && (
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 sm:p-4">
-                    <p className="text-red-400 text-xs sm:text-sm">{error}</p>
+                  <div className={styles.errorBox}>
+                    <p className={styles.errorText}>{error}</p>
                   </div>
                 )}
 
-                <div>
+                <div className={styles.formField}>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-gray-300 mb-2"
+                    className={styles.label}
                   >
                     Email Address
                   </label>
@@ -245,16 +246,16 @@ function LoginContent() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-3 sm:px-4 py-3 sm:py-3.5 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base min-h-[44px]"
+                    className={styles.input}
                     placeholder="Enter your @paruluniversity.ac.in email"
                     style={{ fontSize: "16px" }}
                   />
                 </div>
 
-                <div>
+                <div className={styles.formField}>
                   <label
                     htmlFor="password"
-                    className="block text-sm font-medium text-gray-300 mb-2"
+                    className={styles.label}
                   >
                     Password
                   </label>
@@ -264,7 +265,7 @@ function LoginContent() {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full px-3 sm:px-4 py-3 sm:py-3.5 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base min-h-[44px]"
+                    className={styles.input}
                     placeholder="Enter your password"
                     style={{ fontSize: "16px" }}
                   />
@@ -273,12 +274,12 @@ function LoginContent() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 sm:py-3.5 md:py-4 rounded-lg hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base md:text-lg min-h-[48px] flex items-center justify-center"
+                  className={styles.submitButton}
                 >
                   {loading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-sm sm:text-base">
+                    <div className={styles.loadingContainer}>
+                      <div className={styles.spinner}></div>
+                      <span className={styles.loadingText}>
                         Signing in...
                       </span>
                     </div>
@@ -288,12 +289,12 @@ function LoginContent() {
                 </button>
 
                 {/* Divider */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-600"></div>
+                <div className={styles.divider}>
+                  <div className={styles.dividerLine}>
+                    <div className={styles.dividerBorder}></div>
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-gray-800/80 text-gray-400">
+                  <div className={styles.dividerText}>
+                    <span className={styles.dividerTextInner}>
                       Or continue with
                     </span>
                   </div>
@@ -304,18 +305,18 @@ function LoginContent() {
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={googleLoading}
-                  className="w-full bg-white text-gray-900 font-semibold py-3 sm:py-3.5 md:py-4 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base md:text-lg min-h-[48px] flex items-center justify-center gap-3"
+                  className={styles.googleButton}
                 >
                   {googleLoading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-sm sm:text-base">
+                    <div className={styles.loadingContainer}>
+                      <div className={styles.spinner}></div>
+                      <span className={styles.loadingText}>
                         Signing in with Google...
                       </span>
                     </div>
                   ) : (
                     <>
-                      <svg className="w-5 h-5" viewBox="0 0 24 24">
+                      <svg className={styles.googleIcon} viewBox="0 0 24 24">
                         <path
                           fill="#4285F4"
                           d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -338,12 +339,12 @@ function LoginContent() {
                   )}
                 </button>
 
-                <div className="text-center">
-                  <p className="text-gray-400 text-xs sm:text-sm">
+                <div className={styles.footerSection}>
+                  <p className={styles.footerText}>
                     Don&apos;t have an account?{" "}
                     <Link
                       href="/register"
-                      className="text-purple-400 hover:text-purple-300 font-medium hover:underline transition-colors"
+                      className={styles.footerLink}
                     >
                       Sign up here
                     </Link>
@@ -351,10 +352,10 @@ function LoginContent() {
                 </div>
 
                 {/* Back to Dashboard */}
-                <div className="text-center mt-8">
+                <div className={styles.backButton}>
                   <button
                     onClick={() => router.push("/")}
-                    className="inline-flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors"
+                    className={styles.backButtonLink}
                   >
                     <span>←</span>
                     <span>Back to Dashboard</span>
@@ -373,8 +374,8 @@ export default function Login() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
-          <div className="text-white text-xl">Loading...</div>
+        <div className={styles.loadingFallback}>
+          <div className={styles.loadingFallbackText}>Loading...</div>
         </div>
       }
     >

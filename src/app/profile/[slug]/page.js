@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import styles from './page.module.css';
 
 export default function ProfilePage() {
   const { slug } = useParams();
@@ -51,10 +52,10 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
+      <div className={styles.centerContainer}>
+        <div className={styles.loadingContent}>
+          <div className={styles.spinner}></div>
+          <p className={styles.loadingText}>Loading profile...</p>
         </div>
       </div>
     );
@@ -62,14 +63,14 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="text-center max-w-md mx-auto">
-          <div className="text-6xl mb-4">😞</div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Profile not found</h1>
-          <p className="text-gray-600 mb-6">The user profile you&apos;re looking for doesn&apos;t exist.</p>
+      <div className={styles.centerContainer}>
+        <div className={styles.notFoundContent}>
+          <div className={styles.notFoundEmoji}>😞</div>
+          <h1 className={styles.notFoundTitle}>Profile not found</h1>
+          <p className={styles.notFoundDescription}>The user profile you&apos;re looking for doesn&apos;t exist.</p>
           <button 
             onClick={() => router.push('/')}
-            className="w-full sm:w-auto bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+            className={styles.notFoundButton}
           >
             Go Back Home
           </button>
@@ -79,39 +80,39 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <div className={styles.container}>
+      <div className={styles.maxWidth}>
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 sm:mb-6">
-            <div className="flex items-center">
-              <div className="text-red-500 mr-2">⚠️</div>
-              <div className="text-sm sm:text-base">{error}</div>
+          <div className={styles.errorContainer}>
+            <div className={styles.errorContent}>
+              <div className={styles.errorIcon}>⚠️</div>
+              <div className={styles.errorText}>{error}</div>
             </div>
           </div>
         )}
 
         {/* Header Card */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-4 sm:mb-8 animate-slideIn">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 sm:px-6 py-6 sm:py-8">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
+        <div className={styles.headerCard}>
+          <div className={styles.headerBackground}>
+            <div className={styles.headerContent}>
               {/* Avatar */}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-xl sm:text-3xl font-bold text-white">
+              <div className={styles.avatar}>
+                <span className={styles.avatarText}>
                   {profile.fullName ? profile.fullName.charAt(0).toUpperCase() : profile.username.charAt(0).toUpperCase()}
                 </span>
               </div>
               
               {/* Profile Info */}
-              <div className="text-center sm:text-left flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 break-words">
+              <div className={styles.profileInfo}>
+                <h1 className={styles.profileName}>
                   {profile.fullName || profile.username}
                 </h1>
-                <p className="text-indigo-100 text-sm sm:text-base mb-1 break-words">@{profile.username}</p>
-                <p className="text-indigo-200 text-xs sm:text-sm break-words">{profile.email}</p>
+                <p className={styles.profileUsername}>@{profile.username}</p>
+                <p className={styles.profileEmail}>{profile.email}</p>
                 
                 {/* Role Badge - Mobile */}
-                <div className="mt-3 sm:hidden flex justify-center">
+                <div className={styles.roleBadgeMobile}>
                   {profile.role && (
                     <RoleIndicator 
                       role={profile.role} 
@@ -124,7 +125,7 @@ export default function ProfilePage() {
               </div>
               
               {/* Role Badge - Desktop */}
-              <div className="hidden sm:flex items-start">
+              <div className={styles.roleBadgeDesktop}>
                 {profile.role && (
                   <RoleIndicator 
                     role={profile.role} 
@@ -139,58 +140,58 @@ export default function ProfilePage() {
         </div>
 
         {/* Profile Content */}
-        <div className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-1 lg:grid-cols-2 lg:gap-8">
+        <div className={styles.contentGrid}>
           {/* User Information Card */}
-          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 animate-slideIn" style={{animationDelay: '0.1s'}}>
-            <div className="flex items-center mb-4 sm:mb-6">
-              <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-indigo-600 text-sm">👤</span>
+          <div className={styles.infoCard} style={{animationDelay: '0.1s'}}>
+            <div className={styles.cardHeader}>
+              <div className={`${styles.cardIcon} ${styles.userIcon}`}>
+                <span className={`${styles.iconText} ${styles.userIconText}`}>👤</span>
               </div>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">User Information</h2>
+              <h2 className={styles.cardTitle}>User Information</h2>
             </div>
             
-            <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-gray-600 text-sm sm:text-base mb-1 sm:mb-0 font-medium">Full Name</span>
-                  <span className="text-gray-900 text-sm sm:text-base break-words">
+            <div className={styles.infoList}>
+              <div className={styles.infoItem}>
+                <div className={styles.infoItemContent}>
+                  <span className={styles.infoLabel}>Full Name</span>
+                  <span className={styles.infoValue}>
                     {profile.fullName || (
-                      <span className="italic text-gray-500">Not specified</span>
+                      <span className={styles.infoValueNotSpecified}>Not specified</span>
                     )}
                   </span>
                 </div>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-gray-600 text-sm sm:text-base mb-1 sm:mb-0 font-medium">Username</span>
-                  <span className="text-indigo-600 text-sm sm:text-base break-words font-medium">
+              <div className={styles.infoItem}>
+                <div className={styles.infoItemContent}>
+                  <span className={styles.infoLabel}>Username</span>
+                  <span className={`${styles.infoValue} ${styles.infoValueUsername}`}>
                     @{profile.username}
                   </span>
                 </div>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-gray-600 text-sm sm:text-base mb-1 sm:mb-0 font-medium">Email</span>
-                  <span className="text-gray-900 text-sm sm:text-base break-all">
+              <div className={styles.infoItem}>
+                <div className={styles.infoItemContent}>
+                  <span className={styles.infoLabel}>Email</span>
+                  <span className={`${styles.infoValue} ${styles.infoValueEmail}`}>
                     {profile.email}
                   </span>
                 </div>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-gray-600 text-sm sm:text-base mb-1 sm:mb-0 font-medium">Account Type</span>
-                  <div className="text-sm sm:text-base">
+              <div className={styles.infoItem}>
+                <div className={styles.infoItemContent}>
+                  <span className={styles.infoLabel}>Account Type</span>
+                  <div>
                     {profile.isOAuthUser ? (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs sm:text-sm font-medium">
-                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                      <span className={`${styles.statusBadge} ${styles.statusBadgeOAuth}`}>
+                        <span className={`${styles.statusDot} ${styles.statusDotGreen}`}></span>
                         OAuth ({profile.oauthProvider || 'Unknown'})
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs sm:text-sm font-medium">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                      <span className={`${styles.statusBadge} ${styles.statusBadgeRegular}`}>
+                        <span className={`${styles.statusDot} ${styles.statusDotBlue}`}></span>
                         Regular Account
                       </span>
                     )}
@@ -198,10 +199,10 @@ export default function ProfilePage() {
                 </div>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-gray-600 text-sm sm:text-base mb-1 sm:mb-0 font-medium">Member Since</span>
-                  <span className="text-gray-900 text-sm sm:text-base">
+              <div className={styles.infoItem}>
+                <div className={styles.infoItemContent}>
+                  <span className={styles.infoLabel}>Member Since</span>
+                  <span className={styles.infoValue}>
                     {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
@@ -214,46 +215,46 @@ export default function ProfilePage() {
           </div>
 
           {/* Account Details Card */}
-          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 animate-slideIn" style={{animationDelay: '0.2s'}}>
-            <div className="flex items-center mb-4 sm:mb-6">
-              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-green-600 text-sm">⚙️</span>
+          <div className={styles.infoCard} style={{animationDelay: '0.2s'}}>
+            <div className={styles.cardHeader}>
+              <div className={`${styles.cardIcon} ${styles.settingsIcon}`}>
+                <span className={`${styles.iconText} ${styles.settingsIconText}`}>⚙️</span>
               </div>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Account Details</h2>
+              <h2 className={styles.cardTitle}>Account Details</h2>
             </div>
             
-            <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-gray-600 text-sm sm:text-base mb-1 sm:mb-0 font-medium">Account Status</span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs sm:text-sm font-medium">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+            <div className={styles.infoList}>
+              <div className={styles.infoItem}>
+                <div className={styles.infoItemContent}>
+                  <span className={styles.infoLabel}>Account Status</span>
+                  <span className={`${styles.statusBadge} ${styles.statusBadgeActive}`}>
+                    <span className={`${styles.statusDot} ${styles.statusDotGreen} ${styles.statusDotPulse}`}></span>
                     Active
                   </span>
                 </div>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-gray-600 text-sm sm:text-base mb-1 sm:mb-0 font-medium">Password Setup</span>
-                  <div className="text-sm sm:text-base">
+              <div className={styles.infoItem}>
+                <div className={styles.infoItemContent}>
+                  <span className={styles.infoLabel}>Password Setup</span>
+                  <div>
                     {profile.passwordSetupComplete ? (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs sm:text-sm font-medium">
-                        <span className="mr-1">✓</span> Complete
+                      <span className={`${styles.statusBadge} ${styles.statusBadgeComplete}`}>
+                        <span>✓</span> Complete
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs sm:text-sm font-medium">
-                        <span className="mr-1">⚠</span> Incomplete
+                      <span className={`${styles.statusBadge} ${styles.statusBadgeIncomplete}`}>
+                        <span>⚠</span> Incomplete
                       </span>
                     )}
                   </div>
                 </div>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-gray-600 text-sm sm:text-base mb-1 sm:mb-0 font-medium">Last Updated</span>
-                  <span className="text-gray-900 text-sm sm:text-base">
+              <div className={styles.infoItem}>
+                <div className={styles.infoItemContent}>
+                  <span className={styles.infoLabel}>Last Updated</span>
+                  <span className={styles.infoValue}>
                     {profile.updatedAt ? new Date(profile.updatedAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
@@ -267,10 +268,10 @@ export default function ProfilePage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 animate-slideIn" style={{animationDelay: '0.3s'}}>
+        <div className={styles.actionButtons} style={{animationDelay: '0.3s'}}>
           <button
             onClick={() => router.push('/')}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus-visible:focus-visible transition-all duration-200 font-medium text-sm sm:text-base touch-manipulation transform hover:scale-105 active:scale-95"
+            className={styles.backButton}
           >
             <span>←</span>
             <span>Back to Dashboard</span>

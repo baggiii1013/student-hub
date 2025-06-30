@@ -1,6 +1,7 @@
 import { BloomEffect, EffectComposer, EffectPass, RenderPass, SMAAEffect, SMAAPreset } from 'postprocessing';
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import * as THREE from 'three';
+import styles from './Hyperspeed.module.css';
 
 const Hyperspeed = forwardRef(({ effectOptions = {
   onSpeedUp: () => { },
@@ -1104,7 +1105,7 @@ const Hyperspeed = forwardRef(({ effectOptions = {
   }, []);
 
   return (
-    <div id="lights" className="w-full h-full" ref={hyperspeed}></div>
+    <div id="lights" className={styles.hyperspeedContainer} ref={hyperspeed}></div>
   );
 });
 

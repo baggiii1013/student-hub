@@ -1,0 +1,1030 @@
+/* User Management Page Styles */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #111827 0%, #581c87 50%, #7c3aed 100%);
+  padding: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 2rem;
+  }
+}
+
+.maxWidth {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+/* Header Styles */
+.header {
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .header {
+    margin-bottom: 2rem;
+  }
+}
+
+.headerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .headerContent {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.headerText h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  background: linear-gradient(to right, #60a5fa, #a78bfa, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (min-width: 640px) {
+  .headerText h1 {
+    font-size: 1.875rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .headerText h1 {
+    font-size: 2.25rem;
+  }
+}
+
+.headerText p {
+  color: #d1d5db;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .headerText p {
+    margin-top: 0.5rem;
+    font-size: 1rem;
+  }
+}
+
+.backButton {
+  background-color: #4b5563;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 0.875rem;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .backButton {
+    font-size: 1rem;
+    width: auto;
+  }
+}
+
+.backButton:hover {
+  background-color: #374151;
+}
+
+/* Search and Filters */
+.searchContainer {
+  background-color: rgba(31, 41, 55, 0.6);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #374151;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .searchContainer {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.searchContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .searchContent {
+    gap: 1rem;
+  }
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: rgba(55, 65, 81, 0.5);
+  border: 1px solid #4b5563;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
+.searchInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #8b5cf6;
+}
+
+.filterRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .filterRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.roleFilter {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: rgba(55, 65, 81, 0.5);
+  border: 1px solid #4b5563;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+@media (min-width: 640px) {
+  .roleFilter {
+    width: auto;
+  }
+}
+
+.roleFilter:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #8b5cf6;
+}
+
+.viewToggle {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(55, 65, 81, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+}
+
+@media (min-width: 768px) {
+  .viewToggle {
+    display: flex;
+  }
+}
+
+.viewButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  color: #d1d5db;
+  background: transparent;
+}
+
+.viewButton:hover {
+  color: white;
+  background-color: #4b5563;
+}
+
+.viewButtonActive {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+/* Quick Stats */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .statsGrid {
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.statCard {
+  background-color: rgba(31, 41, 55, 0.4);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid #374151;
+}
+
+@media (min-width: 640px) {
+  .statCard {
+    padding: 1rem;
+  }
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+@media (min-width: 640px) {
+  .statLabel {
+    font-size: 0.875rem;
+  }
+}
+
+.statValue {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: white;
+}
+
+@media (min-width: 640px) {
+  .statValue {
+    font-size: 1.25rem;
+  }
+}
+
+.statValueRed {
+  color: #f87171;
+}
+
+.statValueBlue {
+  color: #60a5fa;
+}
+
+.statValueGreen {
+  color: #4ade80;
+}
+
+/* Pending Changes */
+.pendingChanges {
+  background-color: rgba(180, 83, 9, 0.2);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  border: 1px solid rgba(217, 119, 6, 0.5);
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .pendingChanges {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.pendingContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .pendingContent {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+}
+
+.pendingInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fcd34d;
+}
+
+.pendingInfo svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.pendingText {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .pendingText {
+    font-size: 1rem;
+  }
+}
+
+.pendingActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .pendingActions {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+}
+
+.cancelButton {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background-color: #4b5563;
+  color: white;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .cancelButton {
+    width: auto;
+    font-size: 1rem;
+  }
+}
+
+.cancelButton:hover {
+  background-color: #374151;
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.applyButton {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background-color: #059669;
+  color: white;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .applyButton {
+    width: auto;
+    font-size: 1rem;
+  }
+}
+
+.applyButton:hover {
+  background-color: #047857;
+}
+
+.applyButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid white;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Users List Container */
+.usersContainer {
+  background-color: rgba(31, 41, 55, 0.6);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 0.75rem;
+  border: 1px solid #374151;
+  overflow: hidden;
+}
+
+/* Loading and Empty States */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.loadingSpinner {
+  width: 2rem;
+  height: 2rem;
+  border: 4px solid #a78bfa;
+  border-top: 4px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loadingText {
+  margin-left: 0.75rem;
+  color: #d1d5db;
+}
+
+.emptyContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.emptyContent {
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 4rem;
+  height: 4rem;
+  background-color: #4b5563;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.emptyIcon svg {
+  width: 2rem;
+  height: 2rem;
+  color: #9ca3af;
+}
+
+.emptyTitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #d1d5db;
+  margin-bottom: 0.5rem;
+}
+
+.emptyDescription {
+  color: #9ca3af;
+}
+
+/* Mobile Card View */
+.cardView {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .cardView {
+    display: none;
+  }
+}
+
+.cardViewForced {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .cardViewForced {
+    display: block;
+  }
+}
+
+.cardsList {
+  border-top: 1px solid #374151;
+}
+
+.cardsList > *:not(:last-child) {
+  border-bottom: 1px solid #374151;
+}
+
+.userCard {
+  padding: 1rem;
+  transition: background-color 0.2s;
+}
+
+.userCard:hover {
+  background-color: rgba(55, 65, 81, 0.3);
+}
+
+.userInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.userAvatar {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(to right, #a78bfa, #f472b6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.userDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.userDetailsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.userName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userTag {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: #a78bfa;
+}
+
+.userFullName {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userEmail {
+  font-size: 0.875rem;
+  color: #d1d5db;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oauthInfo {
+  font-size: 0.75rem;
+  color: #60a5fa;
+}
+
+.roleSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.roleInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.roleModified {
+  font-size: 0.75rem;
+  color: #fcd34d;
+  font-weight: 500;
+}
+
+.joinDate {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.actionsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .actionsSection {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+}
+
+.roleChangeSection {
+  flex: 1;
+}
+
+.roleLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+}
+
+.roleSelect {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(55, 65, 81, 0.5);
+  border: 1px solid #4b5563;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.roleSelect:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #8b5cf6;
+}
+
+.deleteSection {
+  display: flex;
+  align-items: flex-end;
+}
+
+.deleteButton {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background-color: #dc2626;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+}
+
+@media (min-width: 640px) {
+  .deleteButton {
+    width: auto;
+  }
+}
+
+.deleteButton:hover {
+  background-color: #b91c1c;
+}
+
+.deleteButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deleteButton svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Desktop Table View */
+.tableView {
+  display: none;
+  overflow-x: auto;
+}
+
+@media (min-width: 1024px) {
+  .tableView {
+    display: block;
+  }
+}
+
+.tableViewForced {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .tableViewForced {
+    display: block;
+  }
+}
+
+.table {
+  width: 100%;
+}
+
+.tableHead {
+  background-color: rgba(55, 65, 81, 0.5);
+}
+
+.tableHeader {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #d1d5db;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tableBody {
+  border-top: 1px solid #374151;
+}
+
+.tableBody > *:not(:last-child) {
+  border-bottom: 1px solid #374151;
+}
+
+.tableRow {
+  transition: background-color 0.2s;
+}
+
+.tableRow:hover {
+  background-color: rgba(55, 65, 81, 0.3);
+}
+
+.tableCell {
+  padding: 1rem 1.5rem;
+  white-space: nowrap;
+}
+
+.tableCellUser {
+  display: flex;
+  align-items: center;
+}
+
+.tableAvatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(to right, #a78bfa, #f472b6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+}
+
+.tableUserInfo {
+  margin-left: 1rem;
+}
+
+.tableUserName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+}
+
+.tableUserFullName {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.tableEmail {
+  font-size: 0.875rem;
+  color: #d1d5db;
+}
+
+.tableOAuthInfo {
+  font-size: 0.75rem;
+  color: #60a5fa;
+}
+
+.tableRoleInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tableRoleModified {
+  font-size: 0.75rem;
+  color: #fcd34d;
+}
+
+.tableJoinDate {
+  font-size: 0.875rem;
+  color: #d1d5db;
+}
+
+.tableActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tableRoleSelect {
+  padding: 0.25rem 0.75rem;
+  background-color: #4b5563;
+  border: 1px solid #6b7280;
+  border-radius: 0.25rem;
+  color: white;
+  font-size: 0.75rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.tableRoleSelect:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #8b5cf6;
+}
+
+.tableDeleteButton {
+  padding: 0.25rem 0.75rem;
+  background-color: #dc2626;
+  color: white;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tableDeleteButton:hover {
+  background-color: #b91c1c;
+}
+
+.tableDeleteButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tableYouTag {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Role Badges */
+.roleBadge {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 9999px;
+}
+
+.roleBadgeCard {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 9999px;
+}
+
+.roleBadgeTable {
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+}
+
+.roleBadgeSuperAdmin {
+  background-color: #dc2626;
+  color: white;
+}
+
+.roleBadgeAdmin {
+  background-color: #2563eb;
+  color: white;
+}
+
+.roleBadgeUser {
+  background-color: #6b7280;
+  color: white;
+}
+
+.roleBadgeDefault {
+  background-color: #9ca3af;
+  color: white;
+}
+
+/* Pagination */
+.pagination {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .pagination {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+.paginationButtons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.paginationButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #4b5563;
+  color: white;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .paginationButton {
+    font-size: 1rem;
+  }
+}
+
+.paginationButton:hover {
+  background-color: #374151;
+}
+
+.paginationButton:disabled {
+  background-color: #1f2937;
+  cursor: not-allowed;
+}
+
+.paginationButton svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.paginationInfo {
+  text-align: center;
+}
+
+.paginationText {
+  color: #d1d5db;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .paginationText {
+    font-size: 1rem;
+  }
+}
+
+.paginationDetails {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

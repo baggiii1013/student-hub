@@ -1,0 +1,107 @@
+/* Main hyperspeed container */
+.hyperspeedContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Canvas container */
+.lightsContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: #000000;
+  display: block;
+}
+
+/* Ensure canvas fills container */
+.lightsContainer canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Loading state */
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  font-size: 1rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Error state */
+.error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ff6b6b;
+  font-family: Arial, sans-serif;
+  font-size: 1rem;
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Fullscreen mode */
+.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+/* Performance optimizations */
+.hyperspeedContainer * {
+  box-sizing: border-box;
+}
+
+/* Disable text selection on the container */
+.hyperspeedContainer {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Smooth transitions */
+.hyperspeedContainer {
+  transition: all 0.3s ease;
+}
+
+/* WebGL context lost styling */
+.contextLost {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffa500;
+  font-family: Arial, sans-serif;
+  font-size: 1rem;
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .hyperspeedContainer {
+    touch-action: none;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .lightsContainer canvas {
+    image-rendering: -webkit-optimize-contrast; /* Edge support */
+    image-rendering: pixelated; /* Chrome/Safari fallback */
+  }
+}
