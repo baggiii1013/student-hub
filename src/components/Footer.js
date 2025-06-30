@@ -29,7 +29,7 @@ export default function Footer() {
             </a>
           </div>
           <div className="text-sm text-gray-500">
-            Guided by: Mohit Rathod sir & Dean Ma'am
+            Guided by: Mohit Rathod sir & Dean Ma&apos;am
           </div>
         </div>
       </div>
