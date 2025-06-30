@@ -69,6 +69,11 @@ function LoginContent() {
             "Access denied: Please use your Parul University email address (@paruluniversity.ac.in)"
           );
           break;
+        case "StudentAccountNotFound":
+          setError(
+            message || "Student account not found. Please contact the administrator if you should have access."
+          );
+          break;
         default:
           setError("Authentication failed. Please try again.");
       }
@@ -204,6 +209,11 @@ function LoginContent() {
             <div className="mt-3 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
               <p className="text-blue-400 text-xs sm:text-sm">
                 🏫 Only @paruluniversity.ac.in email addresses are allowed
+              </p>
+            </div>
+            <div className="mt-2 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+              <p className="text-green-400 text-xs sm:text-sm">
+                📚 Students: Use your student email (13-digit number) to login. Student accounts are pre-configured and cannot register here.
               </p>
             </div>
           </div>

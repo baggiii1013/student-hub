@@ -8,6 +8,18 @@ import GoogleProvider from 'next-auth/providers/google';
 const client = new MongoClient(process.env.MONGODB_URI);
 const clientPromise = client.connect();
 
+// Utility function to check if email is a student email (13-digit number before @)
+function isStudentEmail(email) {
+  const emailParts = email.split('@');
+  if (emailParts.length !== 2 || emailParts[1] !== 'paruluniversity.ac.in') {
+    return false;
+  }
+  
+  const prefix = emailParts[0];
+  // Check if prefix is exactly 13 digits
+  return /^\d{13}$/.test(prefix);
+}
+
 const authOptions = {
   adapter: MongoDBAdapter(clientPromise),
   providers: [
@@ -34,6 +46,9 @@ const authOptions = {
           return false; // Reject sign-in
         }
         
+        // Check if this is a student email (13-digit number before @)
+        const isStudent = isStudentEmail(user.email);
+        
         try {
           await connectDB();
           
@@ -41,7 +56,14 @@ const authOptions = {
           const existingUser = await User.findOne({ email: user.email });
           
           if (!existingUser) {
-            // Create a temporary OAuth user that needs setup completion
+            // For student emails, reject registration - they can only login if they exist
+            if (isStudent) {
+              return '/login?error=StudentAccountNotFound&message=' + encodeURIComponent(
+                'Student accounts cannot be registered through this page. If you should have access, please contact the administrator.'
+              );
+            }
+            
+            // For non-student emails (faculty/staff), allow registration
             try {
               const newUser = new User({
                 username: user.email.split('@')[0] + '_temp_' + Date.now(), // Temporary unique username

@@ -309,8 +309,10 @@ function RegisterContent() {
                     </p>
                     <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4">
                       <p className="text-blue-400 text-xs sm:text-sm font-medium">
-                        🏫 University Access Only: Only @paruluniversity.ac.in
-                        email addresses are allowed
+                        🏫 Faculty/Staff Registration Only: Only faculty and staff can register new accounts
+                      </p>
+                      <p className="text-yellow-400 text-xs mt-2 font-medium">
+                        📚 Students: If you have a student email (13-digit number), please use the <Link href="/login" className="underline hover:text-yellow-300">Login page</Link> instead
                       </p>
                     </div>
                   </div>
