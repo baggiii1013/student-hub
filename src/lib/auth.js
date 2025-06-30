@@ -3,16 +3,12 @@ import { getServerSession } from 'next-auth';
 
 export async function authenticateRequest(request, authOptions) {
   try {
-    console.log('Authenticating request...');
-    
     // For API routes in App Router, try session authentication first
     try {
       // In Next.js 15, getServerSession works directly in API routes without needing cookies
       const session = await getServerSession(authOptions);
-      console.log('Session check result:', session ? 'found' : 'not found');
       
       if (session && session.user) {
-        console.log('Session user found:', session.user.email);
         return { 
           authenticated: true, 
           user: {
@@ -25,21 +21,17 @@ export async function authenticateRequest(request, authOptions) {
         };
       }
     } catch (sessionError) {
-      console.log('Session authentication failed:', sessionError.message);
+      // Session authentication failed, try JWT
     }
-
-    console.log('No session found, trying JWT...');
     
     // Fallback to JWT token authentication
     const authHeader = request.headers.get('authorization');
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-      console.log('No JWT token found');
       return { authenticated: false, error: 'No authentication provided' };
     }
 
-    console.log('Verifying JWT token...');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     return { 
       authenticated: true, 

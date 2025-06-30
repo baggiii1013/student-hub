@@ -4,10 +4,6 @@ import { useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 
 export function ToastProvider() {
-  useEffect(() => {
-    console.log('ToastProvider mounted');
-  }, []);
-
   return (
     <ToastContainer
       position="top-right"

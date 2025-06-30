@@ -4,10 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authAPI } from "@/lib/api";
 import { getSession, signIn } from "next-auth/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
 
 function LoginContent() {
   const [formData, setFormData] = useState({
@@ -95,13 +94,10 @@ function LoginContent() {
       setGoogleLoading(true);
       setError("");
 
-      console.log("Initiating Google sign-in...");
       const result = await signIn("google", {
         redirect: false,
         callbackUrl: "/",
       });
-
-      console.log("Google sign-in result:", result);
 
       if (result?.error) {
         console.error("Google sign-in error:", result.error);

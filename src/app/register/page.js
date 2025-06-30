@@ -42,10 +42,8 @@ function RegisterContent() {
   useEffect(() => {
     // Handle OAuth callback - check if user completed OAuth but needs password setup
     if (session && session.user && !userEmail) {
-      console.log("Session detected:", session.user);
       // Check if this user needs to complete setup
       if (session.user.isOAuthUser && !session.user.passwordSetupComplete) {
-        console.log("User needs to complete OAuth setup");
         setUserEmail(session.user.email);
         setStep(2);
         toast.info(
@@ -53,7 +51,6 @@ function RegisterContent() {
         );
       } else if (session.user.passwordSetupComplete) {
         // User is fully set up, redirect to home
-        console.log("User setup is complete, redirecting to home");
         router.push("/");
       }
     }
@@ -82,14 +79,10 @@ function RegisterContent() {
     try {
       setGoogleLoading(true);
 
-      console.log("Starting Google sign-in process for registration...");
-
       const result = await signIn("google", {
         redirect: false,
         callbackUrl: "/register",
       });
-
-      console.log("Google sign-in result:", result);
 
       if (result?.error) {
         console.error("Sign-in error details:", result.error);
@@ -103,16 +96,13 @@ function RegisterContent() {
           );
         }
       } else if (result?.ok) {
-        console.log("Google sign-in successful, waiting for session...");
         toast.success(
           "Google authentication successful! Checking your account status..."
         );
         // The useEffect will handle the next steps when session updates
       } else if (result?.url) {
-        console.log("Redirecting to:", result.url);
         window.location.href = result.url;
       } else {
-        console.log("Unexpected result:", result);
         toast.info("Google authentication in progress...");
       }
     } catch (error) {

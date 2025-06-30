@@ -6,11 +6,10 @@ const connectDB = async () => {
       return true;
     }
 
-    const { connection } = await mongoose.connect(process.env.MONGODB_URI, {
+    await mongoose.connect(process.env.MONGODB_URI, {
       dbName: "user-data"
     });
 
-    console.log(`MongoDB Connected: ${connection.host}`);
     return true;
   } catch (error) {
     console.error(error);

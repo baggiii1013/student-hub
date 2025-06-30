@@ -27,25 +27,20 @@ const authOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log('SignIn callback triggered', { user: user.email, provider: account?.provider });
       
       if (account?.provider === 'google') {
         // Check if email is from the required domain
         if (!user.email.endsWith('@paruluniversity.ac.in')) {
-          console.log('Access denied: Email not from paruluniversity.ac.in domain:', user.email);
           return false; // Reject sign-in
         }
         
         try {
-          console.log('Connecting to database...');
           await connectDB();
-          console.log('Database connected successfully');
           
           // Check if user already exists in our User model
           const existingUser = await User.findOne({ email: user.email });
           
           if (!existingUser) {
-            console.log('New Google user, creating temporary OAuth user for', user.email);
             // Create a temporary OAuth user that needs setup completion
             try {
               const newUser = new User({
@@ -59,18 +54,15 @@ const authOptions = {
               });
               
               await newUser.save();
-              console.log('Temporary OAuth user created for setup:', newUser._id);
             } catch (dbError) {
               console.error('Error creating temporary OAuth user:', dbError);
               // Continue anyway to allow the OAuth flow
             }
             return true;
           } else {
-            console.log('Existing user found:', existingUser.email, 'Setup complete:', existingUser.passwordSetupComplete);
             
             // If user exists but is OAuth and hasn't completed setup, allow sign-in for setup completion
             if (existingUser.isOAuthUser && !existingUser.passwordSetupComplete) {
-              console.log('OAuth user needs to complete setup');
               return true;
             }
             
@@ -92,23 +84,19 @@ const authOptions = {
       return true;
     },
     async jwt({ token, user, account }) {
-      console.log('JWT callback triggered', { hasUser: !!user, hasAccount: !!account, email: token.email });
       
       if (account && user) {
         try {
-          console.log('JWT callback - connecting to database...');
           const connectPromise = connectDB();
           const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Database connection timeout')), 5000)
           );
           
           await Promise.race([connectPromise, timeoutPromise]);
-          console.log('JWT callback - database connected');
           
           const dbUser = await User.findOne({ email: user.email });
           
           if (dbUser) {
-            console.log('Adding user data to token:', dbUser.email);
             token.user = {
               id: dbUser._id.toString(),
               username: dbUser.username,
@@ -119,7 +107,6 @@ const authOptions = {
               role: dbUser.role
             };
           } else {
-            console.log('User not found in database during JWT callback');
             // Don't create a token for non-registered users
             return null;
           }
@@ -133,11 +120,9 @@ const authOptions = {
       return token;
     },
     async session({ session, token }) {
-      console.log('Session callback triggered');
       
       if (token.user) {
         session.user = token.user;
-        console.log('Session user set:', session.user.email);
       }
       
       return session;
@@ -153,7 +138,6 @@ const authOptions = {
   },
   events: {
     async signIn({ user, account, profile, isNewUser }) {
-      console.log('User signed in:', { email: user.email, isNewUser, provider: account?.provider });
       
       // If it's a Google sign-in attempt but user doesn't exist, we need to redirect to register
       if (account?.provider === 'google') {
@@ -163,7 +147,6 @@ const authOptions = {
           if (!existingUser) {
             // This won't actually execute because the signIn callback will block it
             // But it's here for completeness
-            console.log('User not registered, should redirect to register page');
           }
         } catch (error) {
           console.error('Error in signIn event:', error);
@@ -171,7 +154,6 @@ const authOptions = {
       }
     },
     async signOut({ session, token }) {
-      console.log('User signed out:', { email: session?.user?.email });
     },
   },
   debug: process.env.NODE_ENV === 'development',
@@ -187,7 +169,6 @@ const authOptions = {
     },
     debug(code, metadata) {
       if (process.env.NODE_ENV === 'development') {
-        console.log('NextAuth Debug:', code, metadata);
       }
     }
   },

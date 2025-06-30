@@ -61,17 +61,11 @@ function UploadPageContent() {
       const formData = new FormData();
       formData.append('file', file);
 
-      console.log('Uploading file:', file.name, 'to /api/students/upload');
-
       const response = await fetch('/api/students/upload', {
         method: 'POST',
         credentials: 'include', // Include session cookies
         body: formData
       });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      console.log('Response content-type:', response.headers.get('content-type'));
 
       // Check if the response is actually JSON
       const contentType = response.headers.get('content-type');

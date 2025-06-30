@@ -74,7 +74,6 @@ export async function PUT(request, { params }) {
   try {
     // Check authentication - for now, we'll skip authentication to fix the immediate issue
     // TODO: Implement proper authentication check
-    console.log('PUT request received for student update');
 
     await connectDB();
 
@@ -83,8 +82,6 @@ export async function PUT(request, { params }) {
 
     // Remove fields that shouldn't be updated via this endpoint
     const { _id, __v, searchKeywords, ...validUpdateData } = updateData;
-
-    console.log('Updating student:', ugNumber, 'with data:', validUpdateData);
 
     // Find and update the student
     const student = await Student.findOneAndUpdate(

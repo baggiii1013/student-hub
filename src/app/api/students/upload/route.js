@@ -5,35 +5,23 @@ import Student from '@/models/Student';
 import Excel from 'exceljs';
 
 export async function POST(request) {
-  console.log('Upload API POST called');
-  
   // Wrap everything in try-catch to ensure we always return JSON
   try {
-    console.log('Connecting to database...');
     await connectDB();
-    console.log('Database connected');
 
     // Authenticate user (handles both NextAuth sessions and JWT tokens)
-    console.log('Starting authentication...');
     const authResult = await authenticateRequest(request, authOptions);
     
     if (!authResult.authenticated) {
-      console.log('Authentication failed:', authResult.error);
       return createErrorResponse(authResult.error, 401);
     }
 
-    console.log('User authenticated:', authResult.user?.email || 'unknown', 'via', authResult.authType);
-
-    console.log('Getting form data...');
     const formData = await request.formData();
     const file = formData.get('file');
 
     if (!file) {
-      console.log('No file provided');
       return createErrorResponse('No file provided', 400);
     }
-
-    console.log('File received:', file.name, 'Type:', file.type, 'Size:', file.size);
 
     // Check file type
     const allowedTypes = [
@@ -43,7 +31,6 @@ export async function POST(request) {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      console.log('Invalid file type:', file.type);
       return createErrorResponse('Invalid file type. Please upload an Excel or CSV file.', 400);
     }
 
@@ -110,8 +97,6 @@ export async function POST(request) {
         return createErrorResponse('File too large. Please upload files with 1000 or fewer records to avoid timeouts.', 400);
       }
 
-      console.log(`Processing ${data.length} rows from spreadsheet`);
-
     } catch (parseError) {
       console.error('Error parsing file:', parseError);
       return createErrorResponse('Error parsing the file. Please ensure it\'s a valid Excel or CSV file.', 400);
@@ -123,8 +108,6 @@ export async function POST(request) {
     const validStudents = [];
     let updated = 0;
     let created = 0;
-
-    console.log('Starting data validation and processing...');
 
     // First pass: validate all data
     for (let i = 0; i < data.length; i++) {
@@ -191,15 +174,11 @@ export async function POST(request) {
       }
     }
 
-    console.log(`Validated ${validStudents.length} students, ${errors.length} errors`);
-
     if (validStudents.length === 0) {
       return createErrorResponse('No valid students found to process', 400);
     }
 
     // Second pass: bulk database operations
-    console.log('Starting bulk database operations...');
-
     try {
       // Get all existing UG numbers in one query
       const ugNumbers = validStudents.map(s => s.ugNumber);
@@ -208,8 +187,6 @@ export async function POST(request) {
       }).select('ugNumber name').lean();
       
       const existingUgNumbers = new Set(existingStudents.map(s => s.ugNumber));
-      
-      console.log(`Found ${existingUgNumbers.size} existing students`);
 
       // Separate into updates and creates
       const studentsToUpdate = [];
@@ -235,14 +212,11 @@ export async function POST(request) {
         }
       });
 
-      console.log(`Will create ${studentsToCreate.length}, update ${studentsToUpdate.length}`);
 
       // Bulk create new students
       if (studentsToCreate.length > 0) {
-        console.log('Bulk creating new students...');
         const createResult = await Student.insertMany(studentsToCreate, { ordered: false });
         created = createResult.length;
-        console.log(`Created ${created} students`);
         
         // Add to processed list
         createResult.forEach(student => {
@@ -256,7 +230,6 @@ export async function POST(request) {
 
       // Bulk update existing students
       if (studentsToUpdate.length > 0) {
-        console.log('Bulk updating existing students...');
         const bulkOps = studentsToUpdate.map(studentData => ({
           updateOne: {
             filter: { ugNumber: studentData.ugNumber },
@@ -266,7 +239,6 @@ export async function POST(request) {
 
         const updateResult = await Student.bulkWrite(bulkOps);
         updated = updateResult.modifiedCount;
-        console.log(`Updated ${updated} students`);
 
         // Add to processed list
         studentsToUpdate.forEach(studentData => {
@@ -297,7 +269,6 @@ export async function POST(request) {
       hasMoreErrors: errors.length > 5
     };
 
-    console.log('Sending response:', responseData);
     return createResponse(responseData);
 
   } catch (error) {
@@ -324,19 +295,15 @@ export async function POST(request) {
 
 // GET method to download a sample template
 export async function GET(request) {
-  console.log('Upload API GET called for template download');
   
   try {
-    console.log('Starting template generation...');
     
     // Authenticate user (handles both NextAuth sessions and JWT tokens)
     const authResult = await authenticateRequest(request, authOptions);
     if (!authResult.authenticated) {
-      console.log('GET Authentication failed:', authResult.error);
       return createErrorResponse(authResult.error, 401);
     }
 
-    console.log('GET User downloading template:', authResult.user?.email || 'unknown', 'via', authResult.authType);
 
     // Create sample data
     const sampleData = [
