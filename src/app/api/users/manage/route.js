@@ -1,12 +1,12 @@
 import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
-import connectDB from '@/lib/dbConnection';
+import withDatabase from '@/lib/withDatabase';
 import User from '@/models/User';
 import { authOptions } from '../../auth/[...nextauth]/route.js';
 
 // Get all users (Super Admin only)
-export async function GET(request) {
+async function getUsers(request) {
   try {
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
 
     // Check authorization using the unified authentication method
     const authResult = await authenticateRequest(request, authOptions);
@@ -52,9 +52,9 @@ export async function GET(request) {
 }
 
 // Update user role (Super Admin only)
-export async function PUT(request) {
+async function updateUser(request) {
   try {
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
 
     // Check authorization using the unified authentication method
     const authResult = await authenticateRequest(request, authOptions);
@@ -107,9 +107,9 @@ export async function PUT(request) {
 }
 
 // Delete user (Super Admin only)
-export async function DELETE(request) {
+async function deleteUser(request) {
   try {
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
 
     // Check authorization using the unified authentication method
     const authResult = await authenticateRequest(request, authOptions);
@@ -152,3 +152,8 @@ export async function DELETE(request) {
     return createErrorResponse('Failed to delete user', 500);
   }
 }
+
+// Export the wrapped functions
+export const GET = withDatabase(getUsers);
+export const PUT = withDatabase(updateUser);
+export const DELETE = withDatabase(deleteUser);

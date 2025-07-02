@@ -20,6 +20,17 @@ function isStudentEmail(email) {
   return /^\d{13}$/.test(prefix);
 }
 
+// Utility function to handle database connection for NextAuth callbacks
+async function withDBConnection(callback) {
+  try {
+    await connectDB();
+    return await callback();
+  } catch (error) {
+    console.error('Database connection error in NextAuth:', error);
+    throw error;
+  }
+}
+
 const authOptions = {
   adapter: MongoDBAdapter(clientPromise),
   providers: [
@@ -50,9 +61,8 @@ const authOptions = {
         const isStudent = isStudentEmail(user.email);
         
         try {
-          await connectDB();
-          
-          // Check if user already exists in our User model
+          return await withDBConnection(async () => {
+            // Check if user already exists in our User model
           const existingUser = await User.findOne({ email: user.email });
           
           if (!existingUser) {
@@ -95,6 +105,7 @@ const authOptions = {
             
             return true;
           }
+          });
         } catch (error) {
           console.error('Error during sign in:', error);
           console.error('Error stack:', error.stack);
@@ -109,29 +120,24 @@ const authOptions = {
       
       if (account && user) {
         try {
-          const connectPromise = connectDB();
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Database connection timeout')), 5000)
-          );
+          await withDBConnection(async () => {
+            const dbUser = await User.findOne({ email: user.email });
           
-          await Promise.race([connectPromise, timeoutPromise]);
-          
-          const dbUser = await User.findOne({ email: user.email });
-          
-          if (dbUser) {
-            token.user = {
-              id: dbUser._id.toString(),
-              username: dbUser.username,
-              email: dbUser.email,
-              fullName: dbUser.fullName,
-              isOAuthUser: dbUser.isOAuthUser,
-              passwordSetupComplete: dbUser.passwordSetupComplete,
-              role: dbUser.role
-            };
-          } else {
-            // Don't create a token for non-registered users
-            return null;
-          }
+            if (dbUser) {
+              token.user = {
+                id: dbUser._id.toString(),
+                username: dbUser.username,
+                email: dbUser.email,
+                fullName: dbUser.fullName,
+                isOAuthUser: dbUser.isOAuthUser,
+                passwordSetupComplete: dbUser.passwordSetupComplete,
+                role: dbUser.role
+              };
+            } else {
+              // Don't create a token for non-registered users
+              return null;
+            }
+          });
         } catch (error) {
           console.error('Error in JWT callback:', error);
           // Return null to prevent token creation on database errors
@@ -164,12 +170,13 @@ const authOptions = {
       // If it's a Google sign-in attempt but user doesn't exist, we need to redirect to register
       if (account?.provider === 'google') {
         try {
-          await connectDB();
-          const existingUser = await User.findOne({ email: user.email });
-          if (!existingUser) {
-            // This won't actually execute because the signIn callback will block it
-            // But it's here for completeness
-          }
+          await withDBConnection(async () => {
+            const existingUser = await User.findOne({ email: user.email });
+            if (!existingUser) {
+              // This won't actually execute because the signIn callback will block it
+              // But it's here for completeness
+            }
+          });
         } catch (error) {
           console.error('Error in signIn event:', error);
         }

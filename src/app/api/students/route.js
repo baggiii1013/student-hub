@@ -1,5 +1,6 @@
 import { createErrorResponse, createResponse } from '@/lib/auth';
 import connectDB from '@/lib/dbConnection';
+import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
 
 // Transform student data to normalize field names
@@ -26,10 +27,9 @@ function transformStudent(studentObj) {
   };
 }
 
-export async function GET(request) {
+async function getStudents(request) {
   try {
-    await connectDB();
-
+    // Connection is already established by withDatabase wrapper
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 50;
@@ -65,3 +65,6 @@ export async function GET(request) {
     return createErrorResponse('Error fetching students', 500);
   }
 }
+
+// Export the wrapped function
+export const GET = withDatabase(getStudents);

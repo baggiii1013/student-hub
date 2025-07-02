@@ -1,10 +1,8 @@
 import { authenticateToken, createErrorResponse, createResponse } from '@/lib/auth';
-import connectDB from '@/lib/dbConnection';
 
 export async function GET(request) {
   try {
-    await connectDB();
-
+    // No database connection needed - just reading from JWT token
     const authResult = authenticateToken(request);
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.error, 401);

@@ -1,10 +1,10 @@
 import { createErrorResponse, createResponse } from '@/lib/auth';
-import connectDB from '@/lib/dbConnection';
+import withDatabase from '@/lib/withDatabase';
 import User from '@/models/User';
 
-export async function GET(request) {
+async function getSetupStatus(request) {
   try {
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
 
     const url = new URL(request.url);
     const email = url.searchParams.get('email');
@@ -32,3 +32,6 @@ export async function GET(request) {
     return createErrorResponse('Failed to check setup status', 500);
   }
 }
+
+// Export the wrapped function
+export const GET = withDatabase(getSetupStatus);

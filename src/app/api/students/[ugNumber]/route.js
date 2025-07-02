@@ -1,5 +1,5 @@
 import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
-import connectDB from '@/lib/dbConnection';
+import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
 
 // Transform student data to normalize field names
@@ -38,9 +38,9 @@ function transformStudent(studentObj) {
   };
 }
 
-export async function GET(request, { params }) {
+async function getStudent(request, { params }) {
   try {
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
 
     const { ugNumber } = await params;
 
@@ -70,12 +70,12 @@ export async function GET(request, { params }) {
   }
 }
 
-export async function PUT(request, { params }) {
+async function updateStudent(request, { params }) {
   try {
     // Check authentication - for now, we'll skip authentication to fix the immediate issue
     // TODO: Implement proper authentication check
 
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
 
     const { ugNumber } = await params;
     const updateData = await request.json();
@@ -124,3 +124,7 @@ export async function PUT(request, { params }) {
     return createErrorResponse('Error updating student', 500);
   }
 }
+
+// Export the wrapped functions
+export const GET = withDatabase(getStudent);
+export const PUT = withDatabase(updateStudent);

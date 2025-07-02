@@ -1,13 +1,13 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
-import connectDB from '@/lib/dbConnection';
+import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
 import Excel from 'exceljs';
 
-export async function POST(request) {
+async function uploadStudents(request) {
   // Wrap everything in try-catch to ensure we always return JSON
   try {
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
 
     // Authenticate user (handles both NextAuth sessions and JWT tokens)
     const authResult = await authenticateRequest(request, authOptions);
@@ -413,3 +413,6 @@ export async function GET(request) {
     }
   }
 }
+
+// Export the wrapped function
+export const POST = withDatabase(uploadStudents);

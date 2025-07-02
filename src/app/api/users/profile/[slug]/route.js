@@ -1,10 +1,10 @@
 import { authenticateToken, createErrorResponse, createResponse } from '@/lib/auth';
-import connectDB from '@/lib/dbConnection';
+import withDatabase from '@/lib/withDatabase';
 import User from '@/models/User';
 
-export async function GET(request, { params }) {
+async function getUserProfile(request, { params }) {
   try {
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
     
     const { slug } = await params;
     
@@ -33,9 +33,9 @@ export async function GET(request, { params }) {
   }
 }
 
-export async function PUT(request, { params }) {
+async function updateUserProfile(request, { params }) {
   try {
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
 
     const authResult = authenticateToken(request);
     if (!authResult.authenticated) {
@@ -92,3 +92,7 @@ export async function PUT(request, { params }) {
     return createErrorResponse('Failed to update user profile', 500);
   }
 }
+
+// Export the wrapped functions
+export const GET = withDatabase(getUserProfile);
+export const PUT = withDatabase(updateUserProfile);

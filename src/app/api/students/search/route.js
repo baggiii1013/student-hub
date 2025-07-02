@@ -1,5 +1,5 @@
 import { createErrorResponse, createResponse } from '@/lib/auth';
-import connectDB from '@/lib/dbConnection';
+import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
 
 // Transform student data to normalize field names
@@ -26,9 +26,9 @@ function transformStudent(studentObj) {
   };
 }
 
-export async function GET(request) {
+async function searchStudents(request) {
   try {
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
 
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query') || '';
@@ -136,3 +136,6 @@ export async function GET(request) {
     return createErrorResponse('Error searching students', 500);
   }
 }
+
+// Export the wrapped function
+export const GET = withDatabase(searchStudents);

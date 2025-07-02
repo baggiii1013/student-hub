@@ -1,11 +1,11 @@
 import { createErrorResponse, createResponse } from '@/lib/auth';
-import connectDB from '@/lib/dbConnection';
+import withDatabase from '@/lib/withDatabase';
 import User from '@/models/User';
 import bcrypt from 'bcrypt';
 
-export async function POST(request) {
+async function completeSetup(request) {
   try {
-    await connectDB();
+    // Database connection is already established by withDatabase wrapper
 
     const { email, username, password } = await request.json();
 
@@ -73,3 +73,6 @@ export async function POST(request) {
     return createErrorResponse('Setup completion failed', 500);
   }
 }
+
+// Export the wrapped function
+export const POST = withDatabase(completeSetup);

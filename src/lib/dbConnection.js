@@ -1,19 +1,42 @@
 import mongoose from 'mongoose';
 
+// Global connection cache to prevent multiple connections in serverless environments
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
 const connectDB = async () => {
   try {
-    if (mongoose.connections[0].readyState) {
-      return true;
+    // If we already have a connection, return it
+    if (cached.conn) {
+      return cached.conn;
     }
 
-    await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: "user-data"
-    });
+    // If we don't have a promise, create one
+    if (!cached.promise) {
+      const opts = {
+        dbName: "user-data",
+        bufferCommands: false, // Disable mongoose buffering
+        maxPoolSize: 10, // Maximum number of connections in the pool
+        serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+        socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+        family: 4, // Use IPv4, skip trying IPv6
+      };
 
-    return true;
+      cached.promise = mongoose.connect(process.env.MONGODB_URI, opts);
+    }
+
+    // Wait for the connection to be established
+    cached.conn = await cached.promise;
+    
+    return cached.conn;
   } catch (error) {
-    console.error(error);
-    return false;
+    // Reset promise so it can be retried
+    cached.promise = null;
+    console.error('Database connection error:', error);
+    throw error;
   }
 };
 
