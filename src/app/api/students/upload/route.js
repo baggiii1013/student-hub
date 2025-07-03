@@ -146,7 +146,7 @@ async function uploadStudents(request) {
         }
 
         // Validate branch enum
-        const validBranches = ['CSE', 'AI',  'CE' , 'other'];
+        const validBranches = ['CSE', 'AI', 'CE', 'CS', 'OTHER'];
         if (studentData.branch && !validBranches.includes(studentData.branch)) {
           errors.push({
             row: rowNumber,

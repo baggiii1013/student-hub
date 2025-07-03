@@ -46,7 +46,7 @@ const studentSchema = new mongoose.Schema({
   },
   caste: {
     type: String,
-    enum: ['General(open)', 'OBC', 'SC', 'ST', 'Other'],
+    enum: ['General(open)', 'OBC', 'SC', 'ST', 'EBC', 'NT/DNT', 'Other'],
     default: 'General(open)'
   },
   state: {
@@ -61,7 +61,7 @@ const studentSchema = new mongoose.Schema({
   branch: {
     type: String,
     default: '',
-    enum: ['CSE', 'CE', 'AI', 'OTHER'],
+    enum: ['CSE', 'CE', 'AI', 'CS', 'OTHER'],
   },
   // Document verification fields
   tenthMarksheet: {

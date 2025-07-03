@@ -484,6 +484,7 @@ export default function StudentProfilePage() {
                           { value: 'CSE', label: 'Computer Science & Engineering' },
                           { value: 'CE', label: 'Computer Engineering' },
                           { value: 'AI', label: 'Artificial Intelligence' },
+                          { value: 'CS', label: 'Cyber Security' },
                           { value: 'OTHER', label: 'Other' }
                         ]}
                         currentStudent={currentStudent}
@@ -511,6 +512,8 @@ export default function StudentProfilePage() {
                           { value: 'OBC', label: 'OBC' },
                           { value: 'SC', label: 'SC' },
                           { value: 'ST', label: 'ST' },
+                          { value: 'EBC', label: 'EBC' },
+                          { value: 'NT/DNT', label: 'NT/DNT' },
                           { value: 'Other', label: 'Other' }
                         ]}
                         currentStudent={currentStudent}
