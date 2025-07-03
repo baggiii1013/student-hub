@@ -5,7 +5,18 @@ import { MongoClient } from 'mongodb';
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
-const client = new MongoClient(process.env.MONGODB_URI);
+const client = new MongoClient(process.env.MONGODB_URI, {
+  ssl: true,
+  serverSelectionTimeoutMS: 30000,
+  connectTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
+  retryWrites: true,
+  maxPoolSize: 10,
+  minPoolSize: 1,
+  maxIdleTimeMS: 30000,
+  waitQueueTimeoutMS: 10000,
+  heartbeatFrequencyMS: 10000,
+});
 const clientPromise = client.connect();
 
 // Utility function to check if email is a student email (13-digit number before @)
@@ -22,13 +33,34 @@ function isStudentEmail(email) {
 
 // Utility function to handle database connection for NextAuth callbacks
 async function withDBConnection(callback) {
-  try {
-    await connectDB();
-    return await callback();
-  } catch (error) {
-    console.error('Database connection error in NextAuth:', error);
-    throw error;
+  let retries = 3;
+  let lastError;
+  
+  while (retries > 0) {
+    try {
+      await connectDB();
+      return await callback();
+    } catch (error) {
+      lastError = error;
+      retries--;
+      
+      console.error(`Database connection error in NextAuth (retries left: ${retries}):`, error);
+      
+      // If it's an SSL/TLS error, wait a bit before retrying
+      if (error.message.includes('SSL') || error.message.includes('TLS') || error.message.includes('ssl3_read_bytes')) {
+        console.error('SSL/TLS error detected, waiting 2 seconds before retry...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      
+      // If no retries left, throw the error
+      if (retries === 0) {
+        console.error('All database connection retries exhausted');
+        throw error;
+      }
+    }
   }
+  
+  throw lastError;
 }
 
 const authOptions = {
@@ -109,6 +141,16 @@ const authOptions = {
         } catch (error) {
           console.error('Error during sign in:', error);
           console.error('Error stack:', error.stack);
+          
+          // If it's a database connection error, still allow OAuth sign-in
+          // The user data will be handled when the database is available again
+          if (error.message.includes('SSL') || error.message.includes('TLS') || 
+              error.message.includes('MongoServerSelectionError') || 
+              error.message.includes('MongoNetworkError')) {
+            console.log('Database connection issue detected, allowing OAuth sign-in to proceed');
+            return true;
+          }
+          
           // Allow sign-in even if our custom logic fails to prevent blocking users
           return true;
         }
@@ -134,14 +176,40 @@ const authOptions = {
                 role: dbUser.role
               };
             } else {
-              // Don't create a token for non-registered users
-              return null;
+              // If user doesn't exist in database, create a minimal token
+              // This handles cases where the database was unavailable during sign-in
+              token.user = {
+                id: user.id || user.email, // Use email as fallback ID
+                username: user.email.split('@')[0],
+                email: user.email,
+                fullName: user.name,
+                isOAuthUser: true,
+                passwordSetupComplete: false,
+                role: 'student' // Default role
+              };
             }
           });
         } catch (error) {
           console.error('Error in JWT callback:', error);
-          // Return null to prevent token creation on database errors
-          return null;
+          
+          // If it's a database connection error, create a minimal token to allow sign-in
+          if (error.message.includes('SSL') || error.message.includes('TLS') || 
+              error.message.includes('MongoServerSelectionError') || 
+              error.message.includes('MongoNetworkError')) {
+            console.log('Database connection issue in JWT callback, creating minimal token');
+            token.user = {
+              id: user.id || user.email,
+              username: user.email.split('@')[0],
+              email: user.email,
+              fullName: user.name,
+              isOAuthUser: true,
+              passwordSetupComplete: false,
+              role: 'student'
+            };
+          } else {
+            // For other errors, return null to prevent token creation
+            return null;
+          }
         }
       }
       
