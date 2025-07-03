@@ -29,7 +29,7 @@ export default function Footer() {
             </a>
           </div>
           <div className={styles.guidedBy}>
-            Guided by: Mr. Mohit Rathod sir & Ms. Sumitera Menaria
+            Guided by: Mr. Mohit Rathod & Ms. Sumitra Menaria
           </div>
         </div>
       </div>
