@@ -61,9 +61,19 @@ function UploadPageContent() {
       const formData = new FormData();
       formData.append('file', file);
 
+      // Prepare headers for the request
+      const headers = {};
+      
+      // Include JWT token if available (for manually logged in users)
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/students/upload', {
         method: 'POST',
-        credentials: 'include', // Include session cookies
+        credentials: 'include', // Include session cookies for OAuth users
+        headers,
         body: formData
       });
 
@@ -94,8 +104,19 @@ function UploadPageContent() {
 
   const downloadTemplate = async () => {
     try {
+      // Prepare headers for the request
+      const headers = {};
+      
+      // Include JWT token if available (for manually logged in users)
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/students/upload', {
-        method: 'GET'
+        method: 'GET',
+        credentials: 'include', // Include session cookies for OAuth users
+        headers
       });
 
       if (!response.ok) {

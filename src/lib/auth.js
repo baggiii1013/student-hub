@@ -5,7 +5,7 @@ export async function authenticateRequest(request, authOptions) {
   try {
     // For API routes in App Router, try session authentication first
     try {
-      // In Next.js 15, getServerSession works directly in API routes without needing cookies
+      // In Next.js 15 App Router, getServerSession needs to be called with request context
       const session = await getServerSession(authOptions);
       
       if (session && session.user) {
@@ -21,7 +21,7 @@ export async function authenticateRequest(request, authOptions) {
         };
       }
     } catch (sessionError) {
-      // Session authentication failed, try JWT
+      console.error('Session authentication failed, trying JWT:', sessionError.message);
     }
     
     // Fallback to JWT token authentication
