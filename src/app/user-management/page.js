@@ -20,6 +20,15 @@ export default function UserManagement() {
   const [pendingChanges, setPendingChanges] = useState({});
   const [applyingChanges, setApplyingChanges] = useState(false);
   const [viewMode, setViewMode] = useState('auto'); // 'auto', 'table', 'cards'
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createUserData, setCreateUserData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    fullName: '',
+    role: 'user'
+  });
+  const [creatingUser, setCreatingUser] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
 
@@ -155,6 +164,80 @@ export default function UserManagement() {
     }
   };
 
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!createUserData.username || !createUserData.email || !createUserData.password) {
+      toast.error('Username, email, and password are required');
+      return;
+    }
+
+    if (!createUserData.email.endsWith('@paruluniversity.ac.in')) {
+      toast.error('Email must be from @paruluniversity.ac.in domain');
+      return;
+    }
+
+    if (createUserData.password.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
+    setCreatingUser(true);
+
+    try {
+      await userManagementAPI.createUser(createUserData);
+      toast.success('User created successfully');
+      setShowCreateModal(false);
+      setCreateUserData({
+        username: '',
+        email: '',
+        password: '',
+        fullName: '',
+        role: 'user'
+      });
+      await fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast.error(error.message || 'Failed to create user');
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
+  const handleCreateModalClose = () => {
+    setShowCreateModal(false);
+    setCreateUserData({
+      username: '',
+      email: '',
+      password: '',
+      fullName: '',
+      role: 'user'
+    });
+  };
+
+  const createUser = async () => {
+    try {
+      setCreatingUser(true);
+      await userManagementAPI.createUser(createUserData);
+      toast.success('User created successfully');
+      setShowCreateModal(false);
+      setCreateUserData({
+        username: '',
+        email: '',
+        password: '',
+        fullName: '',
+        role: 'user'
+      });
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast.error(error.message || 'Failed to create user');
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -193,12 +276,20 @@ export default function UserManagement() {
                   Manage user roles and permissions across the platform
                 </p>
               </div>
-              <button
-                onClick={() => router.push('/')}
-                className={styles.backButton}
-              >
-                Back to Home
-              </button>
+              <div className={styles.headerButtons}>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className={styles.createButton}
+                >
+                  Create User
+                </button>
+                <button
+                  onClick={() => router.push('/')}
+                  className={styles.backButton}
+                >
+                  Back to Home
+                </button>
+              </div>
             </div>
           </div>
 
@@ -583,6 +674,102 @@ export default function UserManagement() {
                 </span>
                 <div className={styles.paginationDetails}>
                   Showing {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Create User Modal - Simplified Version */}
+          {showCreateModal && (
+            <div className={styles.createUserModal}>
+              <div className={styles.modalContent}>
+                <div className={styles.modalHeader}>
+                  <h2 className={styles.modalTitle}>Create User</h2>
+                  <button
+                    onClick={() => setShowCreateModal(false)}
+                    className={styles.modalClose}
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className={styles.modalBody}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Username</label>
+                    <input
+                      type="text"
+                      value={createUserData.username}
+                      onChange={(e) => setCreateUserData({ ...createUserData, username: e.target.value })}
+                      className={styles.formInput}
+                      placeholder="Enter username"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Email</label>
+                    <input
+                      type="email"
+                      value={createUserData.email}
+                      onChange={(e) => setCreateUserData({ ...createUserData, email: e.target.value })}
+                      className={styles.formInput}
+                      placeholder="Enter email"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Password</label>
+                    <input
+                      type="password"
+                      value={createUserData.password}
+                      onChange={(e) => setCreateUserData({ ...createUserData, password: e.target.value })}
+                      className={styles.formInput}
+                      placeholder="Enter password"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Full Name</label>
+                    <input
+                      type="text"
+                      value={createUserData.fullName}
+                      onChange={(e) => setCreateUserData({ ...createUserData, fullName: e.target.value })}
+                      className={styles.formInput}
+                      placeholder="Enter full name"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Role</label>
+                    <select
+                      value={createUserData.role}
+                      onChange={(e) => setCreateUserData({ ...createUserData, role: e.target.value })}
+                      className={styles.formSelect}
+                    >
+                      <option value={ROLES.USER}>User</option>
+                      <option value={ROLES.ADMIN}>Admin</option>
+                      <option value={ROLES.SUPER_ADMIN}>Super Admin</option>
+                    </select>
+                  </div>
+                </div>
+                <div className={styles.modalFooter}>
+                  <button
+                    onClick={handleCreateUser}
+                    disabled={creatingUser}
+                    className={styles.createButton}
+                  >
+                    {creatingUser ? (
+                      <>
+                        <div className={styles.spinner}></div>
+                        Creating...
+                      </>
+                    ) : (
+                      'Create User'
+                    )}
+                  </button>
+                  <button
+                    onClick={handleCreateModalClose}
+                    disabled={creatingUser}
+                    className={styles.cancelButton}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
             </div>

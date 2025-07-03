@@ -85,6 +85,17 @@ export const userManagementAPI = {
     return apiCall(`/users/manage?page=${page}&limit=${limit}`);
   },
   
+  createUser: async (userData) => {
+    if (!userData.username || !userData.email || !userData.password) {
+      throw new Error('Username, email, and password are required');
+    }
+    
+    return apiCall('/users/manage', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  },
+  
   updateUserRole: async (userId, role) => {
     if (!userId || !role) {
       throw new Error('User ID and role are required');
