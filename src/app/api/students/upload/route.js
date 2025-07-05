@@ -121,19 +121,39 @@ async function uploadStudents(request) {
           seqInDivision: parseInt(row['Seq in Division'] || row['seqInDivision'] || row['Sequence'] || 0),
           ugNumber: row['UG Number'] || row['ugNumber'] || row['UG No'] || row['UG_Number'],
           enrollmentNo: row['Enrollment No'] || row['enrollmentNo'] || row['Enrollment'] || '',
-          name: row['Name'] || row['name'] || row['Student Name'],
+          name: row['Name'] || row['name'] || row['Student Name'] || row['Name Of Student'],
+          fullNameAs12th: row['Full Name As 12th'] || row['fullNameAs12th'] || row['Full Name'] || '',
+          whatsappNumber: row['WhatsApp Number'] || row['whatsappNumber'] || row['WhatsApp'] || '',
+          fatherNumber: row['Father Number'] || row['fatherNumber'] || row['Father Contact'] || '',
+          motherNumber: row['Mother Number'] || row['motherNumber'] || row['Mother Contact'] || '',
+          caste: row['Caste'] || row['caste'] || row['Category'] || 'General(open)',
+          state: row['State'] || row['state'] || row['Home State'] || '',
+          dateOfBirth: row['Date of Birth'] || row['dateOfBirth'] || row['DOB'] || null,
           branch: row['Branch'] || row['branch'] || row['Department'],
-          btechDiploma: row['BTech/Diploma'] || row['btechDiploma'] || row['Course Type'] || 'BTech',
           division: row['Division'] || row['division'] || row['Div'],
           batch: parseInt(row['Batch'] || row['batch'] || row['Batch Year'] || new Date().getFullYear()),
+          btechDiploma: row['BTech/Diploma'] || row['btechDiploma'] || row['Course Type'] || 'BTech',
           mftName: row['MFT Name'] || row['mftName'] || row['Faculty Name'] || '',
           mftContactNumber: row['MFT Contact'] || row['mftContactNumber'] || row['Faculty Contact'] || '',
           phoneNumber: row['Phone Number'] || row['phoneNumber'] || row['Contact'] || '',
           timeTable: row['Time Table'] || row['timeTable'] || row['Timetable'] || '',
           roomNumber: row['Room Number'] || row['roomNumber'] || row['Room'] || '',
+          dateOfAdmission: row['Date of Admission'] || row['dateOfAdmission'] || row['Admission Date'] || new Date(),
           email: row['Email'] || row['email'] || row['Email ID'] || '',
-          year: row['Year'] || row['year'] || row['Academic Year'] || '1st Year'
+          year: row['Year'] || row['year'] || row['Academic Year'] || '1st Year',
+          // Document verification fields
+          tenthMarksheet: row['10th Marksheet'] || row['tenthMarksheet'] || row['Tenth Marksheet'] || 'no',
+          twelfthMarksheet: row['12th Marksheet'] || row['twelfthMarksheet'] || row['Twelfth Marksheet'] || 'no',
+          lcTcMigrationCertificate: row['LC/TC/Migration'] || row['lcTcMigrationCertificate'] || row['Migration Certificate'] || 'no',
+          casteCertificate: row['Caste Certificate'] || row['casteCertificate'] || row['Category Certificate'] || 'NA',
+          admissionLetter: row['Admission Letter'] || row['admissionLetter'] || row['Admission'] || 'no'
         };
+
+        // Debug: Log the first few rows to see what data is being processed
+        if (i < 3) {
+          console.log(`Row ${rowNumber} original data:`, row);
+          console.log(`Row ${rowNumber} mapped data:`, studentData);
+        }
 
         // Validate required fields
         if (!studentData.name || !studentData.ugNumber) {
@@ -156,10 +176,47 @@ async function uploadStudents(request) {
           continue;
         }
 
+        // Validate caste enum
+        const validCastes = ['General(open)', 'OBC', 'SC', 'ST', 'EBC', 'NT/DNT', 'Other'];
+        if (studentData.caste && !validCastes.includes(studentData.caste)) {
+          studentData.caste = 'General(open)'; // Default value
+        }
+
         // Validate btechDiploma enum
         const validCourseTypes = ['BTech', 'Diploma', 'D2D'];
         if (studentData.btechDiploma && !validCourseTypes.includes(studentData.btechDiploma)) {
           studentData.btechDiploma = 'BTech'; // Default value
+        }
+
+        // Validate document verification fields
+        const validYesNo = ['yes', 'no'];
+        const validYesNoNA = ['yes', 'no', 'NA'];
+        
+        if (studentData.tenthMarksheet && !validYesNo.includes(studentData.tenthMarksheet)) {
+          studentData.tenthMarksheet = 'no';
+        }
+        if (studentData.twelfthMarksheet && !validYesNo.includes(studentData.twelfthMarksheet)) {
+          studentData.twelfthMarksheet = 'no';
+        }
+        if (studentData.lcTcMigrationCertificate && !validYesNo.includes(studentData.lcTcMigrationCertificate)) {
+          studentData.lcTcMigrationCertificate = 'no';
+        }
+        if (studentData.casteCertificate && !validYesNoNA.includes(studentData.casteCertificate)) {
+          studentData.casteCertificate = 'NA';
+        }
+        if (studentData.admissionLetter && !validYesNo.includes(studentData.admissionLetter)) {
+          studentData.admissionLetter = 'no';
+        }
+
+        // Parse dates
+        if (studentData.dateOfBirth && typeof studentData.dateOfBirth === 'string') {
+          const parsedDOB = new Date(studentData.dateOfBirth);
+          studentData.dateOfBirth = isNaN(parsedDOB.getTime()) ? null : parsedDOB;
+        }
+        
+        if (studentData.dateOfAdmission && typeof studentData.dateOfAdmission === 'string') {
+          const parsedAdmission = new Date(studentData.dateOfAdmission);
+          studentData.dateOfAdmission = isNaN(parsedAdmission.getTime()) ? new Date() : parsedAdmission;
         }
 
         validStudents.push(studentData);
@@ -313,17 +370,30 @@ export async function GET(request) {
         'UG Number': 'UG/2024/001',
         'Enrollment No': 'EN2024001',
         'Name': 'John Doe',
+        'Full Name As 12th': 'John Doe Kumar',
+        'WhatsApp Number': '9876543210',
+        'Father Number': '9876543211',
+        'Mother Number': '9876543212',
+        'Caste': 'General(open)',
+        'State': 'Gujarat',
+        'Date of Birth': '2005-01-15',
         'Branch': 'CSE',
         'BTech/Diploma': 'BTech',
         'Division': 'A',
         'Batch': 2024,
         'MFT Name': 'Dr. Smith',
-        'MFT Contact': '9876543210',
-        'Phone Number': '9876543211',
+        'MFT Contact': '9876543213',
+        'Phone Number': '9876543214',
         'Time Table': 'Schedule A',
         'Room Number': '101',
+        'Date of Admission': '2024-07-01',
         'Email': 'john.doe@example.com',
-        'Year': '1st Year'
+        'Year': '1st Year',
+        '10th Marksheet': 'yes',
+        '12th Marksheet': 'yes',
+        'LC/TC/Migration': 'yes',
+        'Caste Certificate': 'NA',
+        'Admission Letter': 'yes'
       },
       {
         'Sr No': 2,
@@ -331,17 +401,30 @@ export async function GET(request) {
         'UG Number': 'UG/2024/002',
         'Enrollment No': 'EN2024002',
         'Name': 'Jane Smith',
-        'Branch': 'IT',
+        'Full Name As 12th': 'Jane Smith Patel',
+        'WhatsApp Number': '9876543220',
+        'Father Number': '9876543221',
+        'Mother Number': '9876543222',
+        'Caste': 'OBC',
+        'State': 'Maharashtra',
+        'Date of Birth': '2005-03-20',
+        'Branch': 'AI',
         'BTech/Diploma': 'BTech',
-        'Division': 'A',
+        'Division': 'B',
         'Batch': 2024,
         'MFT Name': 'Dr. Johnson',
-        'MFT Contact': '9876543212',
-        'Phone Number': '9876543213',
+        'MFT Contact': '9876543223',
+        'Phone Number': '9876543224',
         'Time Table': 'Schedule B',
         'Room Number': '102',
+        'Date of Admission': '2024-07-02',
         'Email': 'jane.smith@example.com',
-        'Year': '1st Year'
+        'Year': '1st Year',
+        '10th Marksheet': 'yes',
+        '12th Marksheet': 'yes',
+        'LC/TC/Migration': 'no',
+        'Caste Certificate': 'yes',
+        'Admission Letter': 'yes'
       }
     ];
 

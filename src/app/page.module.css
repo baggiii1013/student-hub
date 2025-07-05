@@ -180,6 +180,15 @@
   background-color: #15803d;
 }
 
+.buttonBlue {
+  background-color: #2563eb;
+  color: white;
+}
+
+.buttonBlue:hover {
+  background-color: #1d4ed8;
+}
+
 .buttonIndigo {
   background-color: #4f46e5;
   color: white;
@@ -367,6 +376,15 @@
 
 .fabMenuButtonGreen:focus {
   box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.3);
+}
+
+.fabMenuButtonBlue {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.fabMenuButtonBlue:focus {
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
 }
 
 .fabMenuButtonIndigo {

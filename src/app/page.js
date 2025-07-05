@@ -132,6 +132,12 @@ export default function Home() {
                   
                   {/* Desktop Button Layout */}
                   <div className={styles.desktopButtons}>
+                    <button
+                      onClick={() => router.push('/search')}
+                      className={`${styles.button} ${styles.buttonBlue}`}
+                    >
+                      Advanced Search
+                    </button>
                     <RoleProtected requiredRole="admin">
                       <button
                         onClick={() => router.push('/upload')}
@@ -216,6 +222,31 @@ export default function Home() {
                   aria-label="Navigation actions"
                 >
                   <div className={styles.fabMenuItems}>
+                    {/* Advanced Search */}
+                    <div className={styles.fabMenuItem}>
+                      <div className={styles.fabMenuLabel}>
+                        Advanced Search
+                      </div>
+                      <button
+                        onClick={() => {
+                          // Close menu and navigate
+                          const menu = document.getElementById('mobile-fab-menu');
+                          const fab = document.getElementById('mobile-fab-button');
+                          const backdrop = document.getElementById('mobile-fab-backdrop');
+                          menu.classList.remove(styles.fabMenuOpen);
+                          backdrop.classList.remove(styles.fabBackdropOpen);
+                          fab.querySelector(`.${styles.fabIcon}`).classList.remove(styles.fabIconRotated);
+                          fab.setAttribute('aria-expanded', 'false');
+                          router.push('/search');
+                        }}
+                        role="menuitem"
+                        aria-label="Access advanced search"
+                        className={`${styles.fabMenuButton} ${styles.fabMenuButtonBlue}`}
+                      >
+                        <span aria-hidden="true">🔍</span>
+                      </button>
+                    </div>
+
                     {/* Profile */}
                     <div className={styles.fabMenuItem}>
                       <div className={styles.fabMenuLabel}>

@@ -1,4 +1,5 @@
-import { createErrorResponse, createResponse } from '@/lib/auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
 import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
 
@@ -6,23 +7,23 @@ import Student from '@/models/Student';
 function transformStudent(studentObj) {
   return {
     _id: studentObj._id,
-    name: studentObj["Name Of Student"] || studentObj.name || "",
-    ugNumber: studentObj["UG Number"] || studentObj.ugNumber || "",
-    enrollmentNo: studentObj["ENROLLMENT Number"] || studentObj.enrollmentNo || "",
-    branch: studentObj["Branch"] || studentObj.branch || "",
-    division: studentObj["Division"] || studentObj.division || "",
-    batch: studentObj["Batch"] || studentObj.batch || "",
-    btechDiploma: studentObj["BTech/Diploma"] || studentObj.btechDiploma || "BTech",
-    mftName: studentObj["MFT Name"] || studentObj.mftName || "",
-    mftContactNumber: studentObj["MFT Contact Number"] || studentObj.mftContactNumber || "",
-    phoneNumber: studentObj["Phone Number Of Student"] || studentObj.phoneNumber || "",
-    timeTable: studentObj["Time Table"] || studentObj.timeTable || "",
-    roomNumber: studentObj["Room Number"] || studentObj.roomNumber || "",
+    name: studentObj.name || "",
+    ugNumber: studentObj.ugNumber || "",
+    enrollmentNo: studentObj.enrollmentNo || "",
+    branch: studentObj.branch || "",
+    division: studentObj.division || "",
+    batch: studentObj.batch || "",
+    btechDiploma: studentObj.btechDiploma || "BTech",
+    mftName: studentObj.mftName || "",
+    mftContactNumber: studentObj.mftContactNumber || "",
+    phoneNumber: studentObj.phoneNumber || "",
+    timeTable: studentObj.timeTable || "",
+    roomNumber: studentObj.roomNumber || "",
     year: studentObj.year || "1st Year",
     email: studentObj.email || "",
-    dateOfAdmission: studentObj.dateOfAdmission || studentObj["Date of Admission"],
-    srNo: studentObj["Sr No"] || studentObj.srNo,
-    seqInDivision: studentObj["Seq In Division"] || studentObj.seqInDivision
+    dateOfAdmission: studentObj.dateOfAdmission,
+    srNo: studentObj.srNo,
+    seqInDivision: studentObj.seqInDivision
   };
 }
 
@@ -30,16 +31,28 @@ async function searchStudents(request) {
   try {
     // Database connection is already established by withDatabase wrapper
 
+    // Authenticate user
+    const authResult = await authenticateRequest(request, authOptions);
+    
+    if (!authResult.authenticated) {
+      return createErrorResponse(authResult.error || 'Authentication required', 401);
+    }
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query') || '';
     const branch = searchParams.get('branch') || '';
     const division = searchParams.get('division') || '';
     const batch = searchParams.get('batch') || '';
     const btechDiploma = searchParams.get('btechDiploma') || '';
+    const dateFrom = searchParams.get('dateFrom') || '';
+    const dateTo = searchParams.get('dateTo') || '';
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 100;
-    const sortBy = searchParams.get('sortBy') || 'name';
+    const sortBy = searchParams.get('sortBy') || 'dateOfAdmission';
     const sortOrder = searchParams.get('sortOrder') || 'asc';
+
+    // Check if user is superAdmin for advanced filtering
+    const isSuperAdmin = authResult.user.role === 'superAdmin';
 
     // Build search filter
     const filter = {};
@@ -64,33 +77,75 @@ async function searchStudents(request) {
             branch,
             division,
             batch,
-            btechDiploma
+            btechDiploma,
+            dateFrom,
+            dateTo,
+            isSuperAdmin
           }
         });
       }
 
-      // Exact match for UG number only (both field formats)
+      // Exact match for UG number only (case-insensitive)
       filter.$or = [
-        { "UG Number": { $regex: `^${trimmedQuery}$`, $options: 'i' } },
         { ugNumber: { $regex: `^${trimmedQuery}$`, $options: 'i' } }
       ];
     }
 
     // Additional filters
-    if (branch) filter["Branch"] = branch;
-    if (division) filter["Division"] = division;
-    if (batch) filter["Batch"] = parseInt(batch);
-    if (btechDiploma) filter["BTech/Diploma"] = btechDiploma;
+    if (branch) filter.branch = branch;
+    if (division) filter.division = division;
+    if (batch) filter.batch = parseInt(batch);
+    if (btechDiploma) filter.btechDiploma = btechDiploma;
+
+    // SuperAdmin-only filters: branch and admission date filtering
+    if (isSuperAdmin) {
+      // Allow branch filtering for superAdmin even without a query
+      if (branch && !query) {
+        delete filter.$or; // Remove UG number requirement for superAdmin
+        filter.branch = branch;
+      }
+
+      // Add date range filtering for admission date (superAdmin only)
+      if (dateFrom || dateTo) {
+        filter.dateOfAdmission = {};
+        
+        if (dateFrom) {
+          // Parse the date and set to start of day
+          const fromDate = new Date(dateFrom + 'T00:00:00.000Z');
+          if (!isNaN(fromDate.getTime())) {
+            filter.dateOfAdmission.$gte = fromDate;
+            console.log('Date filter FROM:', dateFrom, '-> parsed:', fromDate);
+          }
+        }
+        
+        if (dateTo) {
+          // Parse the date and set to end of day
+          const toDate = new Date(dateTo + 'T23:59:59.999Z');
+          if (!isNaN(toDate.getTime())) {
+            filter.dateOfAdmission.$lte = toDate;
+            console.log('Date filter TO:', dateTo, '-> parsed:', toDate);
+          }
+        }
+        
+        console.log('Final date filter:', filter.dateOfAdmission);
+      }
+    } else {
+      // Non-superAdmin users cannot filter by branch or date without a UG number query
+      if ((branch && !query) || dateFrom || dateTo) {
+        return createErrorResponse('Access denied: Advanced filtering requires SuperAdmin role', 403);
+      }
+    }
 
     // Sort options - map to actual field names in database
     const sortOptions = {};
     const sortFieldMap = {
-      'name': 'Name Of Student',
-      'ugNumber': 'UG Number',
-      'branch': 'Branch',
-      'division': 'Division',
-      'batch': 'Batch',
-      'year': 'year'
+      'name': 'name',
+      'ugNumber': 'ugNumber',
+      'branch': 'branch',
+      'division': 'division',
+      'batch': 'batch',
+      'year': 'year',
+      'dateOfAdmission': 'dateOfAdmission'
     };
     const actualSortField = sortFieldMap[sortBy] || sortBy;
     sortOptions[actualSortField] = sortOrder === 'desc' ? -1 : 1;
@@ -99,6 +154,9 @@ async function searchStudents(request) {
     const skip = (page - 1) * limit;
 
     // Execute search
+    console.log('Final search filter:', JSON.stringify(filter, null, 2));
+    console.log('Sort options:', sortOptions);
+    
     const rawStudents = await Student.find(filter)
       .sort(sortOptions)
       .skip(skip)
@@ -107,6 +165,7 @@ async function searchStudents(request) {
 
     // Transform data to normalize field names
     const students = rawStudents.map(student => transformStudent(student.toObject()));
+
 
     // Get total count for pagination
     const totalStudents = await Student.countDocuments(filter);
@@ -127,7 +186,10 @@ async function searchStudents(request) {
         branch,
         division,
         batch,
-        btechDiploma
+        btechDiploma,
+        dateFrom,
+        dateTo,
+        isSuperAdmin
       }
     });
 
