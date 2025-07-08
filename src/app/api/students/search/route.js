@@ -1,5 +1,7 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
+import { generateCacheKey, withCache } from '@/lib/cache';
+import { searchRateLimiter, withRateLimit } from '@/lib/rateLimiter';
 import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
 
@@ -47,22 +49,35 @@ async function searchStudents(request) {
     const dateFrom = searchParams.get('dateFrom') || '';
     const dateTo = searchParams.get('dateTo') || '';
     const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 100;
+    const limit = Math.min(parseInt(searchParams.get('limit')) || 100, 200); // Cap limit at 200
     const sortBy = searchParams.get('sortBy') || 'dateOfAdmission';
     const sortOrder = searchParams.get('sortOrder') || 'asc';
+
+    // Generate cache key for this search
+    const cacheKey = generateCacheKey('student_search', {
+      query, branch, division, batch, btechDiploma, dateFrom, dateTo,
+      page, limit, sortBy, sortOrder, role: authResult.user.role
+    });
+
+    // Check cache first
+    const cache = withCache(cacheKey, 60000); // 1 minute cache for search results
+    const cachedResult = cache.get();
+    if (cachedResult) {
+      return createResponse(cachedResult);
+    }
 
     // Check if user is superAdmin for advanced filtering
     const isSuperAdmin = authResult.user.role === 'superAdmin';
 
-    // Build search filter
+    // Build search filter with optimized queries
     const filter = {};
     
-    // Only search by exact UG number match (case-insensitive)
+    // Optimized query handling
     if (query) {
       const trimmedQuery = query.trim();
       if (!trimmedQuery) {
         // Return empty results for empty query
-        return createResponse({
+        const emptyResult = {
           success: true,
           data: [],
           pagination: {
@@ -73,22 +88,24 @@ async function searchStudents(request) {
             hasPrevPage: false
           },
           filters: {
-            query,
-            branch,
-            division,
-            batch,
-            btechDiploma,
-            dateFrom,
-            dateTo,
-            isSuperAdmin
+            query, branch, division, batch, btechDiploma, dateFrom, dateTo, isSuperAdmin
           }
-        });
+        };
+        cache.set(emptyResult);
+        return createResponse(emptyResult);
       }
 
-      // Exact match for UG number only (case-insensitive)
-      filter.$or = [
-        { ugNumber: { $regex: `^${trimmedQuery}$`, $options: 'i' } }
-      ];
+      // Use exact match for UG number (more efficient than regex)
+      if (/^\d+$/.test(trimmedQuery)) {
+        // Numeric query - likely UG number
+        filter.ugNumber = trimmedQuery;
+      } else {
+        // Text query - use case-insensitive regex
+        filter.$or = [
+          { ugNumber: { $regex: `^${trimmedQuery}$`, $options: 'i' } },
+          { name: { $regex: trimmedQuery, $options: 'i' } }
+        ];
+      }
     }
 
     // Additional filters
@@ -114,7 +131,6 @@ async function searchStudents(request) {
           const fromDate = new Date(dateFrom + 'T00:00:00.000Z');
           if (!isNaN(fromDate.getTime())) {
             filter.dateOfAdmission.$gte = fromDate;
-            console.log('Date filter FROM:', dateFrom, '-> parsed:', fromDate);
           }
         }
         
@@ -123,11 +139,8 @@ async function searchStudents(request) {
           const toDate = new Date(dateTo + 'T23:59:59.999Z');
           if (!isNaN(toDate.getTime())) {
             filter.dateOfAdmission.$lte = toDate;
-            console.log('Date filter TO:', dateTo, '-> parsed:', toDate);
           }
         }
-        
-        console.log('Final date filter:', filter.dateOfAdmission);
       }
     } else {
       // Non-superAdmin users cannot filter by branch or date without a UG number query
@@ -150,28 +163,38 @@ async function searchStudents(request) {
     const actualSortField = sortFieldMap[sortBy] || sortBy;
     sortOptions[actualSortField] = sortOrder === 'desc' ? -1 : 1;
 
-    // Pagination
+    // Pagination with optimized skip
     const skip = (page - 1) * limit;
 
-    // Execute search
-    console.log('Final search filter:', JSON.stringify(filter, null, 2));
-    console.log('Sort options:', sortOptions);
-    
-    const rawStudents = await Student.find(filter)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(limit)
-      .select('-__v -searchKeywords');
+    // Build aggregation pipeline for better performance
+    const pipeline = [
+      { $match: filter },
+      { $sort: sortOptions },
+      {
+        $facet: {
+          students: [
+            { $skip: skip },
+            { $limit: limit },
+            { $project: { __v: 0, searchKeywords: 0 } }
+          ],
+          totalCount: [
+            { $count: "count" }
+          ]
+        }
+      }
+    ];
+
+    // Execute optimized aggregation query
+    const [result] = await Student.aggregate(pipeline);
+    const rawStudents = result.students || [];
+    const totalStudents = result.totalCount[0]?.count || 0;
 
     // Transform data to normalize field names
-    const students = rawStudents.map(student => transformStudent(student.toObject()));
+    const students = rawStudents.map(student => transformStudent(student));
 
-
-    // Get total count for pagination
-    const totalStudents = await Student.countDocuments(filter);
     const totalPages = Math.ceil(totalStudents / limit);
 
-    return createResponse({
+    const searchResult = {
       success: true,
       data: students,
       pagination: {
@@ -191,7 +214,12 @@ async function searchStudents(request) {
         dateTo,
         isSuperAdmin
       }
-    });
+    };
+
+    // Cache the result
+    cache.set(searchResult);
+
+    return createResponse(searchResult);
 
   } catch (error) {
     console.error('Search students error:', error);
@@ -199,5 +227,5 @@ async function searchStudents(request) {
   }
 }
 
-// Export the wrapped function
-export const GET = withDatabase(searchStudents);
+// Export the wrapped function with rate limiting and database connection
+export const GET = withRateLimit(searchRateLimiter)(withDatabase(searchStudents));

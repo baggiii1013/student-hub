@@ -149,12 +149,6 @@ async function uploadStudents(request) {
           admissionLetter: row['Admission Letter'] || row['admissionLetter'] || row['Admission'] || 'no'
         };
 
-        // Debug: Log the first few rows to see what data is being processed
-        if (i < 3) {
-          console.log(`Row ${rowNumber} original data:`, row);
-          console.log(`Row ${rowNumber} mapped data:`, studentData);
-        }
-
         // Validate required fields
         if (!studentData.name || !studentData.ugNumber) {
           errors.push({
@@ -478,22 +472,8 @@ export async function GET(request) {
 
   } catch (error) {
     console.error('Template download error:', error);
-    console.error('Template error stack:', error.stack);
     
-    // Ensure JSON response for template errors too
-    try {
-      return createErrorResponse('Failed to generate template: ' + error.message, 500);
-    } catch (responseError) {
-      console.error('Failed to create template error response:', responseError);
-      return new Response(JSON.stringify({
-        success: false,
-        error: true,
-        message: 'Critical template generation error'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    return createErrorResponse('Failed to generate template: ' + error.message, 500);
   }
 }
 

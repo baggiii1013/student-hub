@@ -1,4 +1,6 @@
 import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
+import { generateCacheKey, withCache } from '@/lib/cache';
+import { generalRateLimiter, withRateLimit } from '@/lib/rateLimiter';
 import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
 
@@ -44,25 +46,44 @@ async function getStudent(request, { params }) {
 
     const { ugNumber } = await params;
 
-    // Find student by UG number (handle both formats)
-    const student = await Student.findOne({
-      $or: [
-        { "UG Number": ugNumber },
-        { ugNumber: ugNumber }
-      ]
-    }).select('-__v -searchKeywords');
+    // Generate cache key
+    const cacheKey = generateCacheKey('student_detail', { ugNumber });
+    
+    // Check cache first
+    const cache = withCache(cacheKey, 300000); // 5 minutes cache for individual students
+    const cachedResult = cache.get();
+    if (cachedResult) {
+      return createResponse(cachedResult);
+    }
+
+    // Optimized query using direct ugNumber match first, then fallback
+    let student = await Student.findOne({ ugNumber: ugNumber })
+      .select('-__v -searchKeywords')
+      .lean(); // Use lean() for better performance
+    
+    // Fallback to legacy field name if not found
+    if (!student) {
+      student = await Student.findOne({ "UG Number": ugNumber })
+        .select('-__v -searchKeywords')
+        .lean();
+    }
     
     if (!student) {
       return createErrorResponse('Student not found', 404);
     }
 
     // Transform the student data
-    const transformedStudent = transformStudent(student.toObject());
+    const transformedStudent = transformStudent(student);
 
-    return createResponse({
+    const responseData = {
       success: true,
       data: transformedStudent
-    });
+    };
+
+    // Cache the result
+    cache.set(responseData);
+
+    return createResponse(responseData);
 
   } catch (error) {
     console.error('Get student error:', error);
@@ -72,9 +93,6 @@ async function getStudent(request, { params }) {
 
 async function updateStudent(request, { params }) {
   try {
-    // Check authentication - for now, we'll skip authentication to fix the immediate issue
-    // TODO: Implement proper authentication check
-
     // Database connection is already established by withDatabase wrapper
 
     const { ugNumber } = await params;
@@ -125,6 +143,6 @@ async function updateStudent(request, { params }) {
   }
 }
 
-// Export the wrapped functions
-export const GET = withDatabase(getStudent);
-export const PUT = withDatabase(updateStudent);
+// Export the wrapped functions with rate limiting
+export const GET = withRateLimit(generalRateLimiter)(withDatabase(getStudent));
+export const PUT = withRateLimit(generalRateLimiter)(withDatabase(updateStudent));

@@ -10,7 +10,7 @@ if (!cached) {
 const connectDB = async () => {
   try {
     // If we already have a connection, return it
-    if (cached.conn) {
+    if (cached.conn && cached.conn.readyState === 1) {
       return cached.conn;
     }
 
@@ -19,22 +19,25 @@ const connectDB = async () => {
       const opts = {
         dbName: "user-data",
         bufferCommands: false, // Disable mongoose buffering
-        maxPoolSize: 10, // Maximum number of connections in the pool
-        serverSelectionTimeoutMS: 30000, // Increased timeout for server selection
-        socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-        connectTimeoutMS: 30000, // Connection timeout
+        maxPoolSize: 50, // Increased pool size for high concurrency
+        serverSelectionTimeoutMS: 10000, // Reduced timeout for faster failover
+        socketTimeoutMS: 20000, // Reduced socket timeout
+        connectTimeoutMS: 10000, // Reduced connection timeout
         family: 4, // Use IPv4, skip trying IPv6
         // SSL/TLS Configuration
         ssl: true,
         retryWrites: true,
         retryReads: true,
-        // Additional MongoDB driver options for better connection stability
-        minPoolSize: 1, // Minimum number of connections
-        maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
-        waitQueueTimeoutMS: 10000, // How long to wait for a connection to become available
-        heartbeatFrequencyMS: 10000, // How often to check the connection
+        // Optimized connection pool settings for high load
+        minPoolSize: 5, // Higher minimum connections
+        maxIdleTimeMS: 10000, // Shorter idle time to free up connections faster
+        waitQueueTimeoutMS: 5000, // Reduced wait time for available connections
+        heartbeatFrequencyMS: 5000, // More frequent heartbeats for faster detection
         // Disable compression to reduce SSL overhead
         compressors: [],
+        // Additional performance optimizations
+        autoCreate: false, // Don't auto-create collections
+        autoIndex: false, // Disable auto-indexing for better performance
       };
 
 
@@ -64,12 +67,6 @@ const connectDB = async () => {
     cached.conn = null;
     
     console.error('Database connection error:', error);
-    console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      code: error.code,
-      codeName: error.codeName
-    });
     
     throw error;
   }
