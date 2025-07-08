@@ -19,10 +19,12 @@ const connectDB = async () => {
       const opts = {
         dbName: "user-data",
         bufferCommands: false, // Disable mongoose buffering
-        maxPoolSize: 50, // Increased pool size for high concurrency
-        serverSelectionTimeoutMS: 10000, // Reduced timeout for faster failover
-        socketTimeoutMS: 20000, // Reduced socket timeout
-        connectTimeoutMS: 10000, // Reduced connection timeout
+        maxPoolSize: 100, // Increased pool size for high concurrency testing
+        minPoolSize: 10, // Maintain minimum connections
+        serverSelectionTimeoutMS: 5000, // Faster timeout for testing
+        socketTimeoutMS: 15000, // Reduced socket timeout
+        connectTimeoutMS: 5000, // Faster connection timeout
+        maxIdleTimeMS: 30000, // Close connections after 30s idle
         family: 4, // Use IPv4, skip trying IPv6
         // SSL/TLS Configuration
         ssl: true,

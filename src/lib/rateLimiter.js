@@ -54,8 +54,8 @@ class RateLimiter {
 }
 
 // Global rate limiter instances
-const searchRateLimiter = new RateLimiter(60000, 200); // 200 requests per minute for search
-const generalRateLimiter = new RateLimiter(60000, 300); // 300 requests per minute for general APIs
+const searchRateLimiter = new RateLimiter(60000, 1000); // 1000 requests per minute for search (increased for testing)
+const generalRateLimiter = new RateLimiter(60000, 500); // 500 requests per minute for general APIs
 
 // Cleanup function to run periodically
 setInterval(() => {

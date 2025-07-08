@@ -12,8 +12,8 @@ const studentSchema = new mongoose.Schema({
   ugNumber: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true
+    // Removed index: true since we define it separately below
   },
   enrollmentNo: {
     type: String,
@@ -21,8 +21,8 @@ const studentSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: true,
-    index: true
+    required: true
+    // Removed index: true since we define it separately below
   },
   fullNameAs12th: {
     type: String,
