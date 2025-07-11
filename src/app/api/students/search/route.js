@@ -4,6 +4,7 @@ import { generateCacheKey, withCache } from '@/lib/cache';
 import { searchRateLimiter, withRateLimit } from '@/lib/rateLimiter';
 import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
+import Excel from 'exceljs';
 
 // Transform student data to normalize field names
 function transformStudent(studentObj) {
@@ -25,8 +26,136 @@ function transformStudent(studentObj) {
     email: studentObj.email || "",
     dateOfAdmission: studentObj.dateOfAdmission,
     srNo: studentObj.srNo,
-    seqInDivision: studentObj.seqInDivision
+    seqInDivision: studentObj.seqInDivision,
+    fullNameAs12th: studentObj.fullNameAs12th || "",
+    whatsappNumber: studentObj.whatsappNumber || "",
+    fatherNumber: studentObj.fatherNumber || "",
+    motherNumber: studentObj.motherNumber || "",
+    caste: studentObj.caste || "",
+    state: studentObj.state || "",
+    dateOfBirth: studentObj.dateOfBirth
   };
+}
+
+// Generate Excel file for export
+async function generateExcelFile(students, searchParams) {
+  try {
+    const workbook = new Excel.Workbook();
+    const worksheet = workbook.addWorksheet('Search Results');
+
+    // Define headers
+    const headers = [
+      { header: 'Sr No', key: 'srNo', width: 8 },
+      { header: 'UG Number', key: 'ugNumber', width: 15 },
+      { header: 'Name', key: 'name', width: 25 },
+      { header: 'Enrollment No', key: 'enrollmentNo', width: 15 },
+      { header: 'Branch', key: 'branch', width: 10 },
+      { header: 'Division', key: 'division', width: 10 },
+      { header: 'Batch', key: 'batch', width: 8 },
+      { header: 'Course Type', key: 'btechDiploma', width: 12 },
+      { header: 'Year', key: 'year', width: 10 },
+      { header: 'Full Name (12th)', key: 'fullNameAs12th', width: 25 },
+      { header: 'Phone Number', key: 'phoneNumber', width: 15 },
+      { header: 'WhatsApp Number', key: 'whatsappNumber', width: 15 },
+      { header: 'Father Number', key: 'fatherNumber', width: 15 },
+      { header: 'Mother Number', key: 'motherNumber', width: 15 },
+      { header: 'Email', key: 'email', width: 30 },
+      { header: 'MFT Name', key: 'mftName', width: 20 },
+      { header: 'MFT Contact', key: 'mftContactNumber', width: 15 },
+      { header: 'Room Number', key: 'roomNumber', width: 12 },
+      { header: 'Time Table', key: 'timeTable', width: 15 },
+      { header: 'Caste', key: 'caste', width: 12 },
+      { header: 'State', key: 'state', width: 15 },
+      { header: 'Date of Birth', key: 'dateOfBirth', width: 15 },
+      { header: 'Date of Admission', key: 'dateOfAdmission', width: 18 }
+    ];
+
+    worksheet.columns = headers;
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF366092' }
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    // Add data rows
+    students.forEach((student, index) => {
+      const row = worksheet.addRow({
+        srNo: student.srNo || index + 1,
+        ugNumber: student.ugNumber,
+        name: student.name,
+        enrollmentNo: student.enrollmentNo,
+        branch: student.branch,
+        division: student.division,
+        batch: student.batch,
+        btechDiploma: student.btechDiploma,
+        year: student.year,
+        fullNameAs12th: student.fullNameAs12th,
+        phoneNumber: student.phoneNumber,
+        whatsappNumber: student.whatsappNumber,
+        fatherNumber: student.fatherNumber,
+        motherNumber: student.motherNumber,
+        email: student.email,
+        mftName: student.mftName,
+        mftContactNumber: student.mftContactNumber,
+        roomNumber: student.roomNumber,
+        timeTable: student.timeTable,
+        caste: student.caste,
+        state: student.state,
+        dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString() : '',
+        dateOfAdmission: student.dateOfAdmission ? new Date(student.dateOfAdmission).toLocaleDateString() : ''
+      });
+
+      // Add borders to data rows
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+    });
+
+    // Generate filename with timestamp and search criteria
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const searchCriteria = [];
+    if (searchParams.get('query')) searchCriteria.push(`query-${searchParams.get('query')}`);
+    if (searchParams.get('branch')) searchCriteria.push(`branch-${searchParams.get('branch')}`);
+    if (searchParams.get('division')) searchCriteria.push(`div-${searchParams.get('division')}`);
+    if (searchParams.get('batch')) searchCriteria.push(`batch-${searchParams.get('batch')}`);
+    
+    const criteriaString = searchCriteria.length > 0 ? `-${searchCriteria.join('-')}` : '';
+    const filename = `student-search-results-${timestamp}${criteriaString}.xlsx`;
+
+    // Generate buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    // Return Excel file
+    return new Response(buffer, {
+      headers: {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': buffer.length.toString()
+      }
+    });
+
+  } catch (error) {
+    console.error('Error generating Excel file:', error);
+    return createErrorResponse('Failed to generate Excel file: ' + error.message, 500);
+  }
 }
 
 async function searchStudents(request) {
@@ -37,7 +166,13 @@ async function searchStudents(request) {
     const authResult = await authenticateRequest(request, authOptions);
     
     if (!authResult.authenticated) {
+      console.error('Search API authentication failed:', authResult.error);
       return createErrorResponse(authResult.error || 'Authentication required', 401);
+    }
+
+    // Log authentication success in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Search API authentication successful:', authResult.authType, 'User:', authResult.user.username);
     }
 
     const { searchParams } = new URL(request.url);
@@ -49,25 +184,30 @@ async function searchStudents(request) {
     const dateFrom = searchParams.get('dateFrom') || '';
     const dateTo = searchParams.get('dateTo') || '';
     const page = parseInt(searchParams.get('page')) || 1;
-    const limit = Math.min(parseInt(searchParams.get('limit')) || 100, 200); // Cap limit at 200
+    const limit = parseInt(searchParams.get('limit')) || 100;
+    const exportFormat = searchParams.get('export'); // 'xlsx' for download
+    const maxLimit = exportFormat === 'xlsx' ? 10000 : 200; // Higher limit for exports
+    const finalLimit = Math.min(limit, maxLimit);
     const sortBy = searchParams.get('sortBy') || 'dateOfAdmission';
     const sortOrder = searchParams.get('sortOrder') || 'asc';
 
     // Generate cache key for this search
     const cacheKey = generateCacheKey('student_search', {
       query, branch, division, batch, btechDiploma, dateFrom, dateTo,
-      page, limit, sortBy, sortOrder, role: authResult.user.role
+      page, limit: finalLimit, sortBy, sortOrder, role: authResult.user.role, exportFormat
     });
 
     // Determine cache TTL based on query type
     const isTestQuery = query && (query.startsWith('sustained') || query.startsWith('ultra') || query.startsWith('test'));
     const cacheTTL = isTestQuery ? 30000 : 60000; // 30s for test queries, 60s for real queries
 
-    // Check cache first
-    const cache = withCache(cacheKey, cacheTTL);
-    const cachedResult = cache.get();
-    if (cachedResult) {
-      return createResponse(cachedResult);
+    // Check cache first (skip cache for exports to ensure fresh data)
+    if (exportFormat !== 'xlsx') {
+      const cache = withCache(cacheKey, cacheTTL);
+      const cachedResult = cache.get();
+      if (cachedResult) {
+        return createResponse(cachedResult);
+      }
     }
 
     // Check if user is superAdmin for advanced filtering
@@ -95,7 +235,11 @@ async function searchStudents(request) {
             query, branch, division, batch, btechDiploma, dateFrom, dateTo, isSuperAdmin
           }
         };
-        cache.set(emptyResult);
+        
+        if (exportFormat !== 'xlsx') {
+          const cache = withCache(cacheKey, cacheTTL);
+          cache.set(emptyResult);
+        }
         return createResponse(emptyResult);
       }
 
@@ -134,7 +278,11 @@ async function searchStudents(request) {
             query, branch, division, batch, btechDiploma, dateFrom, dateTo, isSuperAdmin
           }
         };
-        cache.set(mockResult);
+        
+        if (exportFormat !== 'xlsx') {
+          const cache = withCache(cacheKey, cacheTTL);
+          cache.set(mockResult);
+        }
         return createResponse(mockResult);
       }
 
@@ -206,8 +354,9 @@ async function searchStudents(request) {
     const actualSortField = sortFieldMap[sortBy] || sortBy;
     sortOptions[actualSortField] = sortOrder === 'desc' ? -1 : 1;
 
-    // Pagination with optimized skip
-    const skip = (page - 1) * limit;
+    // Pagination with optimized skip (for exports, get all results)
+    const skip = exportFormat === 'xlsx' ? 0 : (page - 1) * finalLimit;
+    const limitForQuery = exportFormat === 'xlsx' ? maxLimit : finalLimit;
 
     // Build aggregation pipeline for better performance
     const pipeline = [
@@ -217,7 +366,7 @@ async function searchStudents(request) {
         $facet: {
           students: [
             { $skip: skip },
-            { $limit: limit },
+            { $limit: limitForQuery },
             { $project: { __v: 0, searchKeywords: 0 } }
           ],
           totalCount: [
@@ -235,7 +384,12 @@ async function searchStudents(request) {
     // Transform data to normalize field names
     const students = rawStudents.map(student => transformStudent(student));
 
-    const totalPages = Math.ceil(totalStudents / limit);
+    // Handle XLSX export
+    if (exportFormat === 'xlsx') {
+      return await generateExcelFile(students, searchParams);
+    }
+
+    const totalPages = Math.ceil(totalStudents / finalLimit);
 
     const searchResult = {
       success: true,
@@ -259,8 +413,11 @@ async function searchStudents(request) {
       }
     };
 
-    // Cache the result
-    cache.set(searchResult);
+    // Cache the result (only for non-exports)
+    if (exportFormat !== 'xlsx') {
+      const cache = withCache(cacheKey, cacheTTL);
+      cache.set(searchResult);
+    }
 
     return createResponse(searchResult);
 

@@ -19,6 +19,7 @@ export default function AdvancedSearch({ onSearchResults, isSearching, setIsSear
     sortBy: 'dateOfAdmission',
     sortOrder: 'asc'
   });
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const branches = ['CSE', 'CE', 'AI', 'CS', 'OTHER'];
   const courseTypes = ['BTech', 'Diploma', 'D2D'];
@@ -61,7 +62,7 @@ export default function AdvancedSearch({ onSearchResults, isSearching, setIsSear
       const response = await studentAPI.searchStudents({
         ...searchParams,
         page: 1,
-        limit: 100
+        limit: 10000 // High limit to get all results
       });
 
       if (response.success) {
@@ -81,6 +82,57 @@ export default function AdvancedSearch({ onSearchResults, isSearching, setIsSear
       onSearchResults([], null);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    // Validate search criteria
+    if (!isSuperAdmin && !searchParams.query.trim()) {
+      toast.error('Please enter a UG number to download results');
+      return;
+    }
+
+    if (isSuperAdmin && !searchParams.query.trim() && !searchParams.branch && !searchParams.dateFrom && !searchParams.dateTo) {
+      toast.error('Please provide at least one search criteria to download');
+      return;
+    }
+
+    if (searchParams.dateFrom && searchParams.dateTo && new Date(searchParams.dateFrom) > new Date(searchParams.dateTo)) {
+      toast.error('Start date cannot be later than end date');
+      return;
+    }
+
+    setIsDownloading(true);
+
+    try {
+      // Use the new download API function that handles authentication properly
+      const response = await studentAPI.downloadSearchResults(searchParams);
+
+      // Get filename from response headers or create default
+      const contentDisposition = response.headers.get('content-disposition');
+      let filename = 'student-search-results.xlsx';
+      if (contentDisposition && contentDisposition.includes('filename=')) {
+        filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
+      }
+
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('Search results downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading search results:', error);
+      toast.error(error.message || 'Failed to download search results');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -246,14 +298,21 @@ export default function AdvancedSearch({ onSearchResults, isSearching, setIsSear
         <div className={styles.actions}>
           <button
             onClick={handleSearch}
-            disabled={isSearching}
+            disabled={isSearching || isDownloading}
             className={`${styles.button} ${styles.searchButton}`}
           >
             {isSearching ? 'Searching...' : 'Search'}
           </button>
           <button
+            onClick={handleDownload}
+            disabled={isSearching || isDownloading}
+            className={`${styles.button} ${styles.downloadButton}`}
+          >
+            {isDownloading ? 'Downloading...' : 'Download XLSX'}
+          </button>
+          <button
             onClick={handleClear}
-            disabled={isSearching}
+            disabled={isSearching || isDownloading}
             className={`${styles.button} ${styles.clearButton}`}
           >
             Clear

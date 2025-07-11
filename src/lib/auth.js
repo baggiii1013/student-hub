@@ -20,7 +20,6 @@ export async function authenticateRequest(request, authOptions) {
 
     // For API routes in App Router, try session authentication first
     try {
-      // In Next.js 15 App Router, getServerSession needs to be called with request context
       const session = await getServerSession(authOptions);
       
       if (session && session.user) {
@@ -36,7 +35,8 @@ export async function authenticateRequest(request, authOptions) {
         };
       }
     } catch (sessionError) {
-      console.error('Session authentication failed, trying JWT:', sessionError.message);
+      // Log session error but continue to JWT fallback
+      console.log('Session authentication not available, trying JWT:', sessionError.message);
     }
     
     // Fallback to JWT token authentication
@@ -44,18 +44,27 @@ export async function authenticateRequest(request, authOptions) {
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-      return { authenticated: false, error: 'No authentication provided' };
+      return { authenticated: false, error: 'No authentication provided - please sign in' };
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      return { 
+        authenticated: true, 
+        user: decoded.user,
+        authType: 'jwt'
+      };
+    } catch (jwtError) {
+      console.error('JWT verification failed:', jwtError.message);
+      return { authenticated: false, error: 'Invalid authentication token - please sign in again' };
+    }
     return { 
       authenticated: true, 
       user: decoded.user,
-      authType: 'jwt'
-    };
+      authType: 'jwt'      };
   } catch (error) {
     console.error('Authentication error:', error);
-    return { authenticated: false, error: 'Authentication failed' };
+    return { authenticated: false, error: 'Authentication failed: ' + error.message };
   }
 }
 

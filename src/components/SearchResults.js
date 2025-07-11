@@ -48,7 +48,15 @@ export default function SearchResults({ students, pagination, isLoading }) {
           <div className={styles.pagination}>
             <span className={styles.resultCount}>
               {pagination.totalStudents} student(s) found
+              {pagination.totalStudents > students.length && 
+                ` (showing ${students.length})`
+              }
             </span>
+            {students.length >= 10000 && (
+              <span className={styles.limitWarning}>
+                Showing first 10,000 results. Use filters to narrow your search.
+              </span>
+            )}
           </div>
         )}
       </div>

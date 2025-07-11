@@ -38,6 +38,43 @@ async function apiCall(endpoint, options = {}) {
   return response.json();
 }
 
+// Helper function for file downloads with authentication
+async function downloadCall(endpoint, options = {}) {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  
+  const defaultOptions = {
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  };
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...defaultOptions,
+    ...options,
+    credentials: 'include', // Include cookies for session authentication
+    headers: {
+      ...defaultOptions.headers,
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    let errorMessage = 'Download failed';
+    
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.message || errorData.error || errorMessage;
+    } catch (parseError) {
+      // If response is not JSON, use status text or generic message
+      errorMessage = response.statusText || `HTTP ${response.status} Error`;
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  return response; // Return the response object for file handling
+}
+
 // Auth API functions
 export const authAPI = {
   login: async (credentials) => {
@@ -71,6 +108,27 @@ export const studentAPI = {
     });
     
     return apiCall(`/students/search?${params}`);
+  },
+  
+  downloadSearchResults: async (searchParams = {}) => {
+    const params = new URLSearchParams({
+      ...searchParams,
+      export: 'xlsx',
+      limit: '10000'
+    });
+    
+    // Remove empty parameters
+    for (const [key, value] of params.entries()) {
+      if (!value || value === '') {
+        params.delete(key);
+      }
+    }
+    
+    return downloadCall(`/students/search?${params}`, {
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    });
   },
   
   getAllStudents: async (page = 1, limit = 50) => {
