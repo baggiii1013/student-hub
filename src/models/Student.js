@@ -61,7 +61,7 @@ const studentSchema = new mongoose.Schema({
   branch: {
     type: String,
     default: '',
-    enum: ['CSE', 'CE', 'AI', 'CS', 'OTHER'],
+    enum: ['CSE', 'CE', 'AI', 'CS', 'OTHER', ''], // Allow empty string
   },
   // Document verification fields
   tenthMarksheet: {

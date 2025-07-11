@@ -54,10 +54,17 @@ async function uploadStudents(request) {
           row.eachCell((cell, colNumber) => {
             const headerCell = worksheet.getRow(1).getCell(colNumber);
             if (headerCell.value) {
-              rowData[headerCell.value] = cell.value;
+              const cellValue = cell.value;
+              // Only add non-empty values
+              if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
+                rowData[headerCell.value] = cellValue;
+              }
             }
           });
-          data.push(rowData);
+          // Only add rows that have some data
+          if (Object.keys(rowData).length > 0) {
+            data.push(rowData);
+          }
         });
       } else {
         // For Excel files (.xlsx, .xls)
@@ -77,10 +84,13 @@ async function uploadStudents(request) {
         worksheet.eachRow((row, rowNumber) => {
           if (rowNumber === 1) return; // Skip header row
           const rowData = {};
-          row.eachCell((cell, colNumber) => {
-            if (headers[colNumber]) {
-              rowData[headers[colNumber]] = cell.value;
+          row.eachCell((cell, colNumber) => {          if (headers[colNumber]) {
+            const cellValue = cell.value;
+            // Only add non-empty values
+            if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
+              rowData[headers[colNumber]] = cellValue;
             }
+          }
           });
           if (Object.keys(rowData).length > 0) {
             data.push(rowData);
@@ -114,11 +124,16 @@ async function uploadStudents(request) {
       const row = data[i];
       const rowNumber = i + 2; // Excel row numbers start from 1, plus header row
 
+      // Skip completely empty rows
+      if (!row || Object.keys(row).length === 0) {
+        continue;
+      }
+
       try {
         // Map spreadsheet columns to our model fields
         const studentData = {
-          srNo: parseInt(row['Sr No'] || row['srNo'] || row['Sr. No.'] || 0),
-          seqInDivision: parseInt(row['Seq in Division'] || row['seqInDivision'] || row['Sequence'] || 0),
+          srNo: parseInt(row['Sr No'] || row['srNo'] || row['Sr. No.'] || 0) || 0,
+          seqInDivision: parseInt(row['Seq in Division'] || row['seqInDivision'] || row['Sequence'] || 0) || 0,
           ugNumber: row['UG Number'] || row['ugNumber'] || row['UG No'] || row['UG_Number'],
           enrollmentNo: row['Enrollment No'] || row['enrollmentNo'] || row['Enrollment'] || '',
           name: row['Name'] || row['name'] || row['Student Name'] || row['Name Of Student'],
@@ -129,9 +144,9 @@ async function uploadStudents(request) {
           caste: row['Caste'] || row['caste'] || row['Category'] || 'General(open)',
           state: row['State'] || row['state'] || row['Home State'] || '',
           dateOfBirth: row['Date of Birth'] || row['dateOfBirth'] || row['DOB'] || null,
-          branch: row['Branch'] || row['branch'] || row['Department'],
-          division: row['Division'] || row['division'] || row['Div'],
-          batch: parseInt(row['Batch'] || row['batch'] || row['Batch Year'] || new Date().getFullYear()),
+          branch: row['Branch'] || row['branch'] || row['Department'] || '',
+          division: row['Division'] || row['division'] || row['Div'] || '',
+          batch: parseInt(row['Batch'] || row['batch'] || row['Batch Year'] || new Date().getFullYear()) || new Date().getFullYear(),
           btechDiploma: row['BTech/Diploma'] || row['btechDiploma'] || row['Course Type'] || 'BTech',
           mftName: row['MFT Name'] || row['mftName'] || row['Faculty Name'] || '',
           mftContactNumber: row['MFT Contact'] || row['mftContactNumber'] || row['Faculty Contact'] || '',
@@ -159,12 +174,26 @@ async function uploadStudents(request) {
           continue;
         }
 
-        // Validate branch enum
+        // Trim whitespace from required fields
+        studentData.name = studentData.name.toString().trim();
+        studentData.ugNumber = studentData.ugNumber.toString().trim();
+
+        // Check if required fields are empty after trimming
+        if (!studentData.name || !studentData.ugNumber) {
+          errors.push({
+            row: rowNumber,
+            error: 'Name and UG Number cannot be empty',
+            data: row
+          });
+          continue;
+        }
+
+        // Validate branch enum (allow empty branch for minimal data)
         const validBranches = ['CSE', 'AI', 'CE', 'CS', 'OTHER'];
         if (studentData.branch && !validBranches.includes(studentData.branch)) {
           errors.push({
             row: rowNumber,
-            error: `Invalid branch: ${studentData.branch}. Valid options: ${validBranches.join(', ')}`,
+            error: `Invalid branch: ${studentData.branch}. Valid options: ${validBranches.join(', ')} or leave empty`,
             data: row
           });
           continue;
@@ -266,17 +295,40 @@ async function uploadStudents(request) {
 
       // Bulk create new students
       if (studentsToCreate.length > 0) {
-        const createResult = await Student.insertMany(studentsToCreate, { ordered: false });
-        created = createResult.length;
-        
-        // Add to processed list
-        createResult.forEach(student => {
-          processedStudents.push({
-            ugNumber: student.ugNumber,
-            name: student.name,
-            action: 'created'
+        try {
+          const createResult = await Student.insertMany(studentsToCreate, { ordered: false });
+          created = createResult.length;
+          
+          // Add to processed list
+          createResult.forEach(student => {
+            processedStudents.push({
+              ugNumber: student.ugNumber,
+              name: student.name,
+              action: 'created'
+            });
           });
-        });
+        } catch (createError) {
+          console.error('Error during bulk create:', createError);
+          
+          // If it's a validation error, try to get specific details
+          if (createError.name === 'ValidationError') {
+            console.error('Validation errors:', createError.errors);
+          }
+          
+          // If it's a bulk write error, check for inserted documents
+          if (createError.writeErrors) {
+            console.error('Write errors:', createError.writeErrors);
+            
+            // Count successfully inserted documents
+            const insertedCount = createError.result ? createError.result.nInserted : 0;
+            created = insertedCount;
+          }
+          
+          // Don't throw the error, continue processing
+          if (created === 0) {
+            return createErrorResponse('Failed to create students: ' + createError.message, 500);
+          }
+        }
       }
 
       // Bulk update existing students
