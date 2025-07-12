@@ -72,6 +72,12 @@
   font-size: 1.125rem;
 }
 
+.limits {
+  color: #fbbf24;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 .profileSection {
   display: flex;
   justify-content: center;

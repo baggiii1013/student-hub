@@ -5,6 +5,10 @@ import Student from '@/models/Student';
 import Excel from 'exceljs';
 
 async function uploadStudents(request) {
+  // Track processing time to prevent timeouts
+  const startTime = Date.now();
+  const maxProcessingTime = 4 * 60 * 1000; // 4 minutes (Vercel has 5 min limit)
+  
   // Wrap everything in try-catch to ensure we always return JSON
   try {
     // Database connection is already established by withDatabase wrapper
@@ -102,14 +106,19 @@ async function uploadStudents(request) {
         return createErrorResponse('The spreadsheet appears to be empty', 400);
       }
 
-      // Check for very large files that might timeout on Vercel
-      if (data.length > 1000) {
-        return createErrorResponse('File too large. Please upload files with 1000 or fewer records to avoid timeouts.', 400);
+      // Check for very large files - increased limit and better error message
+      const maxRecords = 5000; // Increased from 1000 to 5000
+      if (data.length > maxRecords) {
+        return createErrorResponse(
+          `File too large. Please upload files with ${maxRecords} or fewer records. ` +
+          `Your file has ${data.length} records. Consider splitting it into smaller files.`, 
+          400
+        );
       }
 
     } catch (parseError) {
       console.error('Error parsing file:', parseError);
-      return createErrorResponse('Error parsing the file. Please ensure it\'s a valid Excel or CSV file.', 400);
+      return createErrorResponse('Error parsing the file. Please ensure it\'s a valid Excel or CSV file. Details: ' + parseError.message, 400);
     }
 
     // Validate and process data
@@ -293,36 +302,45 @@ async function uploadStudents(request) {
       });
 
 
-      // Bulk create new students
+      // Bulk create new students with batch processing for large datasets
       if (studentsToCreate.length > 0) {
         try {
-          const createResult = await Student.insertMany(studentsToCreate, { ordered: false });
-          created = createResult.length;
+          const batchSize = 500; // Process in smaller batches to avoid timeouts
+          let totalCreated = 0;
           
-          // Add to processed list
-          createResult.forEach(student => {
-            processedStudents.push({
-              ugNumber: student.ugNumber,
-              name: student.name,
-              action: 'created'
-            });
-          });
+          for (let i = 0; i < studentsToCreate.length; i += batchSize) {
+            // Check for timeout
+            if (Date.now() - startTime > maxProcessingTime) {
+                break;
+              }
+            
+            const batch = studentsToCreate.slice(i, i + batchSize);
+            
+            try {
+              const createResult = await Student.insertMany(batch, { ordered: false });
+              totalCreated += createResult.length;
+              
+              // Add to processed list
+              createResult.forEach(student => {
+                processedStudents.push({
+                  ugNumber: student.ugNumber,
+                  name: student.name,
+                  action: 'created'
+                });
+              });
+            } catch (batchError) {
+              console.error(`Error in batch ${Math.floor(i/batchSize) + 1}:`, batchError);
+              
+              // Count any successfully inserted documents in this batch
+              if (batchError.result && batchError.result.nInserted > 0) {
+                totalCreated += batchError.result.nInserted;
+              }
+            }
+          }
+          
+          created = totalCreated;
         } catch (createError) {
           console.error('Error during bulk create:', createError);
-          
-          // If it's a validation error, try to get specific details
-          if (createError.name === 'ValidationError') {
-            console.error('Validation errors:', createError.errors);
-          }
-          
-          // If it's a bulk write error, check for inserted documents
-          if (createError.writeErrors) {
-            console.error('Write errors:', createError.writeErrors);
-            
-            // Count successfully inserted documents
-            const insertedCount = createError.result ? createError.result.nInserted : 0;
-            created = insertedCount;
-          }
           
           // Don't throw the error, continue processing
           if (created === 0) {
@@ -331,26 +349,49 @@ async function uploadStudents(request) {
         }
       }
 
-      // Bulk update existing students
+      // Bulk update existing students with batch processing
       if (studentsToUpdate.length > 0) {
-        const bulkOps = studentsToUpdate.map(studentData => ({
-          updateOne: {
-            filter: { ugNumber: studentData.ugNumber },
-            update: { $set: studentData }
+        try {
+          const batchSize = 500; // Process updates in batches
+          let totalUpdated = 0;
+          
+          for (let i = 0; i < studentsToUpdate.length; i += batchSize) {
+            // Check for timeout
+            if (Date.now() - startTime > maxProcessingTime) {
+              break;
+            }
+            
+            const batch = studentsToUpdate.slice(i, i + batchSize);
+            
+            const bulkOps = batch.map(studentData => ({
+              updateOne: {
+                filter: { ugNumber: studentData.ugNumber },
+                update: { $set: studentData }
+              }
+            }));
+
+            try {
+              const updateResult = await Student.bulkWrite(bulkOps);
+              totalUpdated += updateResult.modifiedCount;
+            } catch (batchError) {
+              console.error(`Error in update batch ${Math.floor(i/batchSize) + 1}:`, batchError);
+            }
           }
-        }));
+          
+          updated = totalUpdated;
 
-        const updateResult = await Student.bulkWrite(bulkOps);
-        updated = updateResult.modifiedCount;
-
-        // Add to processed list
-        studentsToUpdate.forEach(studentData => {
-          processedStudents.push({
-            ugNumber: studentData.ugNumber,
-            name: studentData.name,
-            action: 'updated'
+          // Add to processed list
+          studentsToUpdate.forEach(studentData => {
+            processedStudents.push({
+              ugNumber: studentData.ugNumber,
+              name: studentData.name,
+              action: 'updated'
+            });
           });
-        });
+        } catch (updateError) {
+          console.error('Error during bulk update:', updateError);
+          // Continue processing even if updates fail
+        }
       }
 
     } catch (dbError) {
@@ -358,18 +399,32 @@ async function uploadStudents(request) {
       return createErrorResponse('Database error during bulk operations: ' + dbError.message, 500);
     }
 
+    const processingTime = Date.now() - startTime;
     const responseData = {
-      message: 'Spreadsheet processed successfully',
+      message: data.length > 2000 ? 
+        'Large spreadsheet processed successfully' : 
+        'Spreadsheet processed successfully',
       summary: {
         totalRows: data.length,
+        validRows: validStudents.length,
         processed: processedStudents.length,
         created,
         updated,
-        errors: errors.length
+        errors: errors.length,
+        processingTimeMs: processingTime,
+        processingTimeSeconds: Math.round(processingTime / 1000),
+        ...(data.length > 2000 && {
+          processingTime: 'Processed in batches to prevent timeouts',
+          isLargeFile: true
+        })
       },
       processedStudents: processedStudents.slice(0, 10), // Show first 10 for preview
       errors: errors.slice(0, 5), // Show first 5 errors
-      hasMoreErrors: errors.length > 5
+      hasMoreErrors: errors.length > 5,
+      ...(processedStudents.length > 10 && {
+        hasMoreProcessed: true,
+        totalProcessedShown: Math.min(10, processedStudents.length)
+      })
     };
 
     return createResponse(responseData);

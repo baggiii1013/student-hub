@@ -20,6 +20,29 @@ function UploadPageContent() {
   const [dragActive, setDragActive] = useState(false);
 
   const handleFileSelect = (selectedFile) => {
+    if (!selectedFile) return;
+    
+    // Check file size (rough estimate: 1KB per student record)
+    const maxFileSize = 50 * 1024 * 1024; // 50MB
+    if (selectedFile.size > maxFileSize) {
+      setError('File too large. Please select a file smaller than 50MB.');
+      return;
+    }
+    
+    // Check file type
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv',
+      'application/csv'
+    ];
+    
+    if (!allowedTypes.includes(selectedFile.type) && 
+        !selectedFile.name.toLowerCase().match(/\.(xlsx|xls|csv)$/)) {
+      setError('Please select a valid Excel (.xlsx, .xls) or CSV file.');
+      return;
+    }
+    
     setFile(selectedFile);
     setError('');
     setResult(null);
@@ -95,7 +118,12 @@ function UploadPageContent() {
       setFile(null);
 
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Upload error details:', {
+        message: error.message,
+        fileName: file?.name,
+        fileSize: file?.size,
+        fileType: file?.type
+      });
       setError(error.message || 'Failed to upload file');
     } finally {
       setUploading(false);
@@ -149,7 +177,11 @@ function UploadPageContent() {
               Upload Student Data
             </h1>
             <p className={styles.subtitle}>
-              Upload a spreadsheet to bulk import or update student records
+              Upload a spreadsheet to bulk import or update student records.
+              <br />
+              <span className={styles.limits}>
+                Supports up to 5,000 records. For larger files, split into smaller batches.
+              </span>
             </p>
           </div>
           <div className={styles.profileSection}>
@@ -230,7 +262,10 @@ function UploadPageContent() {
                 {uploading ? (
                   <>
                     <div className={styles.spinner}></div>
-                    Uploading...
+                    {file && file.size > 5 * 1024 * 1024 ? 
+                      'Processing large file... This may take a few minutes' : 
+                      'Uploading...'
+                    }
                   </>
                 ) : (
                   <>
