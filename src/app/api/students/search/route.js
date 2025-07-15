@@ -53,13 +53,14 @@ async function generateExcelFile(students, searchParams) {
       { header: 'Sr No', key: 'srNo', width: 8 },
       { header: 'UG Number', key: 'ugNumber', width: 15 },
       { header: 'Name', key: 'name', width: 25 },
+      { header: 'Full Name (12th)', key: 'fullNameAs12th', width: 25 },
       { header: 'Enrollment No', key: 'enrollmentNo', width: 15 },
       { header: 'Branch', key: 'branch', width: 10 },
       { header: 'Division', key: 'division', width: 10 },
       { header: 'Batch', key: 'batch', width: 8 },
       { header: 'Course Type', key: 'btechDiploma', width: 12 },
       { header: 'Year', key: 'year', width: 10 },
-      { header: 'Full Name (12th)', key: 'fullNameAs12th', width: 25 },
+      { header: 'Seq In Division', key: 'seqInDivision', width: 12 },
       { header: 'Phone Number', key: 'phoneNumber', width: 15 },
       { header: 'WhatsApp Number', key: 'whatsappNumber', width: 15 },
       { header: 'Father Number', key: 'fatherNumber', width: 15 },
@@ -68,11 +69,16 @@ async function generateExcelFile(students, searchParams) {
       { header: 'MFT Name', key: 'mftName', width: 20 },
       { header: 'MFT Contact', key: 'mftContactNumber', width: 15 },
       { header: 'Room Number', key: 'roomNumber', width: 12 },
-      { header: 'Time Table', key: 'timeTable', width: 15 },
+      { header: 'Time Table', key: 'timeTable', width: 30 },
       { header: 'Caste', key: 'caste', width: 12 },
       { header: 'State', key: 'state', width: 15 },
       { header: 'Date of Birth', key: 'dateOfBirth', width: 15 },
-      { header: 'Date of Admission', key: 'dateOfAdmission', width: 18 }
+      { header: 'Date of Admission', key: 'dateOfAdmission', width: 18 },
+      { header: '10th Marksheet', key: 'tenthMarksheet', width: 12 },
+      { header: '12th Marksheet', key: 'twelfthMarksheet', width: 12 },
+      { header: 'LC/TC/Migration', key: 'lcTcMigrationCertificate', width: 15 },
+      { header: 'Caste Certificate', key: 'casteCertificate', width: 15 },
+      { header: 'Admission Letter', key: 'admissionLetter', width: 15 }
     ];
 
     worksheet.columns = headers;
@@ -101,13 +107,14 @@ async function generateExcelFile(students, searchParams) {
         srNo: student.srNo || index + 1,
         ugNumber: student.ugNumber,
         name: student.name,
+        fullNameAs12th: student.fullNameAs12th,
         enrollmentNo: student.enrollmentNo,
         branch: student.branch,
         division: student.division,
         batch: student.batch,
         btechDiploma: student.btechDiploma,
         year: student.year,
-        fullNameAs12th: student.fullNameAs12th,
+        seqInDivision: student.seqInDivision,
         phoneNumber: student.phoneNumber,
         whatsappNumber: student.whatsappNumber,
         fatherNumber: student.fatherNumber,
@@ -120,7 +127,12 @@ async function generateExcelFile(students, searchParams) {
         caste: student.caste,
         state: student.state,
         dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString() : '',
-        dateOfAdmission: student.dateOfAdmission ? new Date(student.dateOfAdmission).toLocaleDateString() : ''
+        dateOfAdmission: student.dateOfAdmission ? new Date(student.dateOfAdmission).toLocaleDateString() : '',
+        tenthMarksheet: student.tenthMarksheet,
+        twelfthMarksheet: student.twelfthMarksheet,
+        lcTcMigrationCertificate: student.lcTcMigrationCertificate,
+        casteCertificate: student.casteCertificate,
+        admissionLetter: student.admissionLetter
       });
 
       // Add borders to data rows
