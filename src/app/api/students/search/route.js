@@ -134,8 +134,6 @@ async function generateExcelFile(students, searchParams) {
     const searchCriteria = [];
     if (searchParams.get('query')) searchCriteria.push(`query-${searchParams.get('query')}`);
     if (searchParams.get('branch')) searchCriteria.push(`branch-${searchParams.get('branch')}`);
-    if (searchParams.get('division')) searchCriteria.push(`div-${searchParams.get('division')}`);
-    if (searchParams.get('batch')) searchCriteria.push(`batch-${searchParams.get('batch')}`);
     
     const criteriaString = searchCriteria.length > 0 ? `-${searchCriteria.join('-')}` : '';
     const filename = `student-search-results-${timestamp}${criteriaString}.xlsx`;
@@ -178,9 +176,6 @@ async function searchStudents(request) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query') || '';
     const branch = searchParams.get('branch') || '';
-    const division = searchParams.get('division') || '';
-    const batch = searchParams.get('batch') || '';
-    const btechDiploma = searchParams.get('btechDiploma') || '';
     const dateFrom = searchParams.get('dateFrom') || '';
     const dateTo = searchParams.get('dateTo') || '';
     const page = parseInt(searchParams.get('page')) || 1;
@@ -188,13 +183,11 @@ async function searchStudents(request) {
     const exportFormat = searchParams.get('export'); // 'xlsx' for download
     const maxLimit = exportFormat === 'xlsx' ? 10000 : 200; // Higher limit for exports
     const finalLimit = Math.min(limit, maxLimit);
-    const sortBy = searchParams.get('sortBy') || 'dateOfAdmission';
-    const sortOrder = searchParams.get('sortOrder') || 'asc';
 
     // Generate cache key for this search
     const cacheKey = generateCacheKey('student_search', {
-      query, branch, division, batch, btechDiploma, dateFrom, dateTo,
-      page, limit: finalLimit, sortBy, sortOrder, role: authResult.user.role, exportFormat
+      query, branch, dateFrom, dateTo,
+      page, limit: finalLimit, role: authResult.user.role, exportFormat
     });
 
     // Determine cache TTL based on query type
@@ -210,8 +203,8 @@ async function searchStudents(request) {
       }
     }
 
-    // Check if user is superAdmin for advanced filtering
-    const isSuperAdmin = authResult.user.role === 'superAdmin';
+    // Check if user is admin or superAdmin for advanced filtering
+    const isAdminOrHigher = authResult.user.role === 'admin' || authResult.user.role === 'superAdmin';
 
     // Build search filter with optimized queries
     const filter = {};
@@ -232,7 +225,7 @@ async function searchStudents(request) {
             hasPrevPage: false
           },
           filters: {
-            query, branch, division, batch, btechDiploma, dateFrom, dateTo, isSuperAdmin
+            query, branch, dateFrom, dateTo, isAdminOrHigher
           }
         };
         
@@ -275,7 +268,7 @@ async function searchStudents(request) {
             hasPrevPage: false
           },
           filters: {
-            query, branch, division, batch, btechDiploma, dateFrom, dateTo, isSuperAdmin
+            query, branch, dateFrom, dateTo, isAdminOrHigher
           }
         };
         
@@ -301,19 +294,16 @@ async function searchStudents(request) {
 
     // Additional filters
     if (branch) filter.branch = branch;
-    if (division) filter.division = division;
-    if (batch) filter.batch = parseInt(batch);
-    if (btechDiploma) filter.btechDiploma = btechDiploma;
 
-    // SuperAdmin-only filters: branch and admission date filtering
-    if (isSuperAdmin) {
-      // Allow branch filtering for superAdmin even without a query
+    // Admin/SuperAdmin-only filters: branch and admission date filtering
+    if (isAdminOrHigher) {
+      // Allow branch filtering for admin/superAdmin even without a query
       if (branch && !query) {
-        delete filter.$or; // Remove UG number requirement for superAdmin
+        delete filter.$or; // Remove UG number requirement for admin/superAdmin
         filter.branch = branch;
       }
 
-      // Add date range filtering for admission date (superAdmin only)
+      // Add date range filtering for admission date (admin/superAdmin only)
       if (dateFrom || dateTo) {
         filter.dateOfAdmission = {};
         
@@ -334,25 +324,14 @@ async function searchStudents(request) {
         }
       }
     } else {
-      // Non-superAdmin users cannot filter by branch or date without a UG number query
+      // Non-admin users cannot filter by branch or date without a UG number query
       if ((branch && !query) || dateFrom || dateTo) {
-        return createErrorResponse('Access denied: Advanced filtering requires SuperAdmin role', 403);
+        return createErrorResponse('Access denied: Advanced filtering requires Admin role', 403);
       }
     }
 
-    // Sort options - map to actual field names in database
-    const sortOptions = {};
-    const sortFieldMap = {
-      'name': 'name',
-      'ugNumber': 'ugNumber',
-      'branch': 'branch',
-      'division': 'division',
-      'batch': 'batch',
-      'year': 'year',
-      'dateOfAdmission': 'dateOfAdmission'
-    };
-    const actualSortField = sortFieldMap[sortBy] || sortBy;
-    sortOptions[actualSortField] = sortOrder === 'desc' ? -1 : 1;
+    // Sort by name for consistent ordering
+    const sortOptions = { name: 1 };
 
     // Pagination with optimized skip (for exports, get all results)
     const skip = exportFormat === 'xlsx' ? 0 : (page - 1) * finalLimit;
@@ -404,12 +383,9 @@ async function searchStudents(request) {
       filters: {
         query,
         branch,
-        division,
-        batch,
-        btechDiploma,
         dateFrom,
         dateTo,
-        isSuperAdmin
+        isAdminOrHigher
       }
     };
 

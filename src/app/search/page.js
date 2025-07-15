@@ -11,7 +11,8 @@ import styles from './page.module.css';
 
 export default function SearchPage() {
   const { user } = useAuth();
-  const { isSuperAdmin } = useRole();
+  const { isSuperAdmin, isAdmin } = useRole();
+  const isAdminOrHigher = isAdmin() || isSuperAdmin();
   const [searchResults, setSearchResults] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -38,6 +39,9 @@ export default function SearchPage() {
             {isSuperAdmin && (
               <span className={styles.roleIndicator}>SuperAdmin</span>
             )}
+            {isAdmin() && !isSuperAdmin && (
+              <span className={styles.roleIndicator}>Admin</span>
+            )}
           </div>
         </div>
 
@@ -59,13 +63,13 @@ export default function SearchPage() {
           </div>
         </div>
 
-        {isSuperAdmin && (
+        {isAdminOrHigher && (
           <div className={styles.adminNotice}>
-            <h4>SuperAdmin Privileges</h4>
+            <h4>{isSuperAdmin ? 'SuperAdmin' : 'Admin'} Privileges</h4>
             <p>
-              As a SuperAdmin, you can search students by branch and admission date 
+              As {isSuperAdmin ? 'a SuperAdmin' : 'an Admin'}, you can search students by branch and admission date 
               without requiring a UG number. You can also view additional student details 
-              including admission dates.
+              including admission dates{isSuperAdmin ? ' and have full system access' : ''}.
             </p>
           </div>
         )}

@@ -7,30 +7,17 @@ import { toast } from 'react-toastify';
 import styles from './AdvancedSearch.module.css';
 
 export default function AdvancedSearch({ onSearchResults, isSearching, setIsSearching }) {
-  const { isSuperAdmin } = useRole();
+  const { isSuperAdmin, isAdmin } = useRole();
+  const isAdminOrHigher = isAdmin() || isSuperAdmin();
   const [searchParams, setSearchParams] = useState({
     query: '',
     branch: '',
-    division: '',
-    batch: '',
-    btechDiploma: '',
     dateFrom: '',
-    dateTo: '',
-    sortBy: 'dateOfAdmission',
-    sortOrder: 'asc'
+    dateTo: ''
   });
   const [isDownloading, setIsDownloading] = useState(false);
 
   const branches = ['CSE', 'CE', 'AI', 'CS', 'OTHER'];
-  const courseTypes = ['BTech', 'Diploma', 'D2D'];
-  const sortOptions = [
-    { value: 'name', label: 'Name' },
-    { value: 'ugNumber', label: 'UG Number' },
-    { value: 'branch', label: 'Branch' },
-    { value: 'division', label: 'Division' },
-    { value: 'batch', label: 'Batch' },
-    { value: 'dateOfAdmission', label: 'Admission Date' }
-  ];
 
   const handleInputChange = (field, value) => {
     setSearchParams(prev => ({
@@ -41,12 +28,12 @@ export default function AdvancedSearch({ onSearchResults, isSearching, setIsSear
 
   const handleSearch = async () => {
     // Validate search criteria
-    if (!isSuperAdmin && !searchParams.query.trim()) {
+    if (!isAdminOrHigher && !searchParams.query.trim()) {
       toast.error('Please enter a UG number to search');
       return;
     }
 
-    if (isSuperAdmin && !searchParams.query.trim() && !searchParams.branch && !searchParams.dateFrom && !searchParams.dateTo) {
+    if (isAdminOrHigher && !searchParams.query.trim() && !searchParams.branch && !searchParams.dateFrom && !searchParams.dateTo) {
       toast.error('Please provide at least one search criteria');
       return;
     }
@@ -87,12 +74,12 @@ export default function AdvancedSearch({ onSearchResults, isSearching, setIsSear
 
   const handleDownload = async () => {
     // Validate search criteria
-    if (!isSuperAdmin && !searchParams.query.trim()) {
+    if (!isAdminOrHigher && !searchParams.query.trim()) {
       toast.error('Please enter a UG number to download results');
       return;
     }
 
-    if (isSuperAdmin && !searchParams.query.trim() && !searchParams.branch && !searchParams.dateFrom && !searchParams.dateTo) {
+    if (isAdminOrHigher && !searchParams.query.trim() && !searchParams.branch && !searchParams.dateFrom && !searchParams.dateTo) {
       toast.error('Please provide at least one search criteria to download');
       return;
     }
@@ -140,13 +127,8 @@ export default function AdvancedSearch({ onSearchResults, isSearching, setIsSear
     setSearchParams({
       query: '',
       branch: '',
-      division: '',
-      batch: '',
-      btechDiploma: '',
       dateFrom: '',
-      dateTo: '',
-      sortBy: 'dateOfAdmission',
-      sortOrder: 'asc'
+      dateTo: ''
     });
     onSearchResults([], null);
   };
@@ -155,7 +137,7 @@ export default function AdvancedSearch({ onSearchResults, isSearching, setIsSear
     <div className={styles.container}>
       <div className={styles.searchForm}>
         <h3 className={styles.title}>
-          {isSuperAdmin ? 'Advanced Student Search' : 'Student Search'}
+          {isAdminOrHigher ? 'Advanced Student Search' : 'Student Search'}
         </h3>
 
         {/* UG Number Search */}
@@ -171,11 +153,11 @@ export default function AdvancedSearch({ onSearchResults, isSearching, setIsSear
           />
         </div>
 
-        {/* SuperAdmin Only Filters */}
-        {isSuperAdmin && (
+        {/* Admin/SuperAdmin Only Filters */}
+        {isAdminOrHigher && (
           <>
             <div className={styles.superAdminSection}>
-              <h4 className={styles.sectionTitle}>Advanced Filters (SuperAdmin Only)</h4>
+              <h4 className={styles.sectionTitle}>Advanced Filters (Admin/SuperAdmin)</h4>
               
               {/* Branch Filter */}
               <div className={styles.formGroup}>
@@ -219,80 +201,6 @@ export default function AdvancedSearch({ onSearchResults, isSearching, setIsSear
             </div>
           </>
         )}
-
-        {/* Common Filters */}
-        <div className={styles.commonFilters}>
-          <div className={styles.filterRow}>
-            <div className={styles.formGroup}>
-              <label htmlFor="division">Division</label>
-              <input
-                id="division"
-                type="text"
-                value={searchParams.division}
-                onChange={(e) => handleInputChange('division', e.target.value)}
-                placeholder="e.g., A, B, C"
-                className={styles.input}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="batch">Batch Year</label>
-              <input
-                id="batch"
-                type="number"
-                value={searchParams.batch}
-                onChange={(e) => handleInputChange('batch', e.target.value)}
-                placeholder="e.g., 2024"
-                className={styles.input}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="btechDiploma">Course Type</label>
-              <select
-                id="btechDiploma"
-                value={searchParams.btechDiploma}
-                onChange={(e) => handleInputChange('btechDiploma', e.target.value)}
-                className={styles.select}
-              >
-                <option value="">All Types</option>
-                {courseTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Sort Options */}
-        <div className={styles.sortOptions}>
-          <div className={styles.formGroup}>
-            <label htmlFor="sortBy">Sort By</label>
-            <select
-              id="sortBy"
-              value={searchParams.sortBy}
-              onChange={(e) => handleInputChange('sortBy', e.target.value)}
-              className={styles.select}
-            >
-              {sortOptions.map(option => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="sortOrder">Sort Order</label>
-            <select
-              id="sortOrder"
-              value={searchParams.sortOrder}
-              onChange={(e) => handleInputChange('sortOrder', e.target.value)}
-              className={styles.select}
-            >
-              <option value="asc">Ascending</option>
-              <option value="desc">Descending</option>
-            </select>
-          </div>
-        </div>
 
         {/* Action Buttons */}
         <div className={styles.actions}>
