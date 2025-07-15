@@ -10,30 +10,35 @@ import Excel from 'exceljs';
 function transformStudent(studentObj) {
   return {
     _id: studentObj._id,
-    name: studentObj.name || "",
-    ugNumber: studentObj.ugNumber || "",
-    enrollmentNo: studentObj.enrollmentNo || "",
-    branch: studentObj.branch || "",
-    division: studentObj.division || "",
-    batch: studentObj.batch || "",
-    btechDiploma: studentObj.btechDiploma || "BTech",
-    mftName: studentObj.mftName || "",
-    mftContactNumber: studentObj.mftContactNumber || "",
-    phoneNumber: studentObj.phoneNumber || "",
-    timeTable: studentObj.timeTable || "",
-    roomNumber: studentObj.roomNumber || "",
+    name: studentObj["Name Of Student"] || studentObj.name || "",
+    ugNumber: studentObj["UG Number"] || studentObj.ugNumber || "",
+    enrollmentNo: studentObj["ENROLLMENT Number"] || studentObj.enrollmentNo || "",
+    branch: studentObj["Branch"] || studentObj.branch || "",
+    division: studentObj["Division"] || studentObj.division || "",
+    batch: studentObj["Batch"] || studentObj.batch || "",
+    btechDiploma: studentObj["BTech/Diploma"] || studentObj.btechDiploma || "BTech",
+    mftName: studentObj["MFT Name"] || studentObj.mftName || "",
+    mftContactNumber: studentObj["MFT Contact Number"] || studentObj.mftContactNumber || "",
+    phoneNumber: studentObj["Phone Number Of Student"] || studentObj.phoneNumber || "",
+    timeTable: studentObj["Time Table"] || studentObj.timeTable || "",
+    roomNumber: studentObj["Room Number"] || studentObj.roomNumber || "",
     year: studentObj.year || "1st Year",
     email: studentObj.email || "",
-    dateOfAdmission: studentObj.dateOfAdmission,
-    srNo: studentObj.srNo,
-    seqInDivision: studentObj.seqInDivision,
+    dateOfAdmission: studentObj.dateOfAdmission || studentObj["Date of Admission"],
+    srNo: studentObj["Sr No"] || studentObj.srNo,
+    seqInDivision: studentObj["Seq In Division"] || studentObj.seqInDivision,
     fullNameAs12th: studentObj.fullNameAs12th || "",
     whatsappNumber: studentObj.whatsappNumber || "",
     fatherNumber: studentObj.fatherNumber || "",
     motherNumber: studentObj.motherNumber || "",
-    caste: studentObj.caste || "",
+    caste: studentObj.caste || "General(open)",
     state: studentObj.state || "",
-    dateOfBirth: studentObj.dateOfBirth
+    dateOfBirth: studentObj.dateOfBirth || null,
+    tenthMarksheet: studentObj.tenthMarksheet || "no",
+    twelfthMarksheet: studentObj.twelfthMarksheet || "no",
+    lcTcMigrationCertificate: studentObj.lcTcMigrationCertificate || "no",
+    casteCertificate: studentObj.casteCertificate || "NA",
+    admissionLetter: studentObj.admissionLetter || "no"
   };
 }
 
@@ -160,19 +165,6 @@ async function searchStudents(request) {
   try {
     // Database connection is already established by withDatabase wrapper
 
-    // Authenticate user
-    const authResult = await authenticateRequest(request, authOptions);
-    
-    if (!authResult.authenticated) {
-      console.error('Search API authentication failed:', authResult.error);
-      return createErrorResponse(authResult.error || 'Authentication required', 401);
-    }
-
-    // Log authentication success in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Search API authentication successful:', authResult.authType, 'User:', authResult.user.username);
-    }
-
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query') || '';
     const branch = searchParams.get('branch') || '';
@@ -181,13 +173,43 @@ async function searchStudents(request) {
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 100;
     const exportFormat = searchParams.get('export'); // 'xlsx' for download
+
+    // Check if this is a simple UG number search (public access)
+    const isSimpleUGSearch = query.trim() && !branch && !dateFrom && !dateTo && !exportFormat;
+    
+    let authResult = null;
+    let isAuthenticated = false;
+
+    if (!isSimpleUGSearch) {
+      // For advanced searches or exports, require authentication
+      authResult = await authenticateRequest(request, authOptions);
+      
+      if (!authResult.authenticated) {
+        console.error('Search API authentication failed:', authResult.error);
+        return createErrorResponse(authResult.error || 'Authentication required for advanced search', 401);
+      }
+
+      isAuthenticated = true;
+
+      // Log authentication success in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Search API authentication successful:', authResult.authType, 'User:', authResult.user.username);
+      }
+    } else {
+      // For simple UG searches, allow public access but log it
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Public UG number search:', query);
+      }
+    }
+
     const maxLimit = exportFormat === 'xlsx' ? 10000 : 200; // Higher limit for exports
     const finalLimit = Math.min(limit, maxLimit);
 
     // Generate cache key for this search
+    const userRole = isAuthenticated ? authResult.user.role : 'public';
     const cacheKey = generateCacheKey('student_search', {
       query, branch, dateFrom, dateTo,
-      page, limit: finalLimit, role: authResult.user.role, exportFormat
+      page, limit: finalLimit, role: userRole, exportFormat
     });
 
     // Determine cache TTL based on query type
@@ -204,7 +226,12 @@ async function searchStudents(request) {
     }
 
     // Check if user is admin or superAdmin for advanced filtering
-    const isAdminOrHigher = authResult.user.role === 'admin' || authResult.user.role === 'superAdmin';
+    const isAdminOrHigher = isAuthenticated && (authResult.user.role === 'admin' || authResult.user.role === 'superAdmin');
+
+    // Validate permissions for non-admin users
+    if (isAuthenticated && !isAdminOrHigher && !query.trim()) {
+      return createErrorResponse('Non-admin users can only search by UG number', 403);
+    }
 
     // Build search filter with optimized queries
     const filter = {};
@@ -212,8 +239,9 @@ async function searchStudents(request) {
     // Optimized query handling
     if (query) {
       const trimmedQuery = query.trim();
-      if (!trimmedQuery) {
-        // Return empty results for empty query
+      
+      // Check if the filter is empty (no criteria provided)
+      if (!trimmedQuery && !branch && !dateFrom && !dateTo) {
         const emptyResult = {
           success: true,
           data: [],
@@ -247,29 +275,17 @@ async function searchStudents(request) {
             enrollmentNo: `EN${Math.floor(Math.random() * 999999)}`,
             branch: 'CSE',
             division: 'A',
-            batch: 2024,
-            btechDiploma: 'BTech',
-            mftName: 'Test Parent',
-            mftContactNumber: '9999999999',
-            phoneNumber: '8888888888',
-            timeTable: 'Regular',
-            roomNumber: 'R001',
-            year: '1st Year',
-            email: `test${trimmedQuery}@test.com`,
-            dateOfAdmission: new Date().toISOString(),
-            srNo: Math.floor(Math.random() * 1000),
-            seqInDivision: Math.floor(Math.random() * 100)
+            batch: '2024',
+            year: '1st Year'
           }],
           pagination: {
-            currentPage: page,
+            currentPage: 1,
             totalPages: 1,
             totalStudents: 1,
             hasNextPage: false,
             hasPrevPage: false
           },
-          filters: {
-            query, branch, dateFrom, dateTo, isAdminOrHigher
-          }
+          filters: { query: trimmedQuery, branch, dateFrom, dateTo, isAdminOrHigher }
         };
         
         if (exportFormat !== 'xlsx') {
@@ -279,86 +295,62 @@ async function searchStudents(request) {
         return createResponse(mockResult);
       }
 
-      // Use exact match for UG number (more efficient than regex)
-      if (/^\d+$/.test(trimmedQuery)) {
-        // Numeric query - likely UG number
-        filter.ugNumber = trimmedQuery;
-      } else {
-        // Text query - use case-insensitive regex
-        filter.$or = [
-          { ugNumber: { $regex: `^${trimmedQuery}$`, $options: 'i' } },
-          { name: { $regex: trimmedQuery, $options: 'i' } }
-        ];
-      }
+      // Efficient search using text search and field matching
+      const searchValue = trimmedQuery.toUpperCase();
+      
+      filter.$or = [
+        { ugNumber: { $regex: searchValue, $options: 'i' } },
+        { "UG Number": { $regex: searchValue, $options: 'i' } },
+        { name: { $regex: searchValue, $options: 'i' } },
+        { "Name Of Student": { $regex: searchValue, $options: 'i' } },
+        { enrollmentNo: { $regex: searchValue, $options: 'i' } },
+        { "ENROLLMENT Number": { $regex: searchValue, $options: 'i' } }
+      ];
     }
 
-    // Additional filters
-    if (branch) filter.branch = branch;
-
-    // Admin/SuperAdmin-only filters: branch and admission date filtering
-    if (isAdminOrHigher) {
-      // Allow branch filtering for admin/superAdmin even without a query
-      if (branch && !query) {
-        delete filter.$or; // Remove UG number requirement for admin/superAdmin
-        filter.branch = branch;
-      }
-
-      // Add date range filtering for admission date (admin/superAdmin only)
-      if (dateFrom || dateTo) {
-        filter.dateOfAdmission = {};
-        
-        if (dateFrom) {
-          // Parse the date and set to start of day
-          const fromDate = new Date(dateFrom + 'T00:00:00.000Z');
-          if (!isNaN(fromDate.getTime())) {
-            filter.dateOfAdmission.$gte = fromDate;
-          }
-        }
-        
-        if (dateTo) {
-          // Parse the date and set to end of day
-          const toDate = new Date(dateTo + 'T23:59:59.999Z');
-          if (!isNaN(toDate.getTime())) {
-            filter.dateOfAdmission.$lte = toDate;
-          }
-        }
-      }
-    } else {
-      // Non-admin users cannot filter by branch or date without a UG number query
-      if ((branch && !query) || dateFrom || dateTo) {
-        return createErrorResponse('Access denied: Advanced filtering requires Admin role', 403);
-      }
+    // Branch filter
+    if (branch) {
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $or: [
+          { "Branch": branch },
+          { branch: branch }
+        ]
+      });
     }
 
-    // Sort by name for consistent ordering
-    const sortOptions = { name: 1 };
+    // Date range filter (for admission date)
+    if (dateFrom || dateTo) {
+      const dateFilter = {};
+      if (dateFrom) {
+        dateFilter.$gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        dateFilter.$lte = new Date(dateTo);
+      }
+      
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $or: [
+          { dateOfAdmission: dateFilter },
+          { "Date of Admission": dateFilter }
+        ]
+      });
+    }
+
+    // Get total count for pagination (with same filter)
+    const totalStudents = await Student.countDocuments(filter);
 
     // Pagination with optimized skip (for exports, get all results)
     const skip = exportFormat === 'xlsx' ? 0 : (page - 1) * finalLimit;
     const limitForQuery = exportFormat === 'xlsx' ? maxLimit : finalLimit;
 
-    // Build aggregation pipeline for better performance
-    const pipeline = [
-      { $match: filter },
-      { $sort: sortOptions },
-      {
-        $facet: {
-          students: [
-            { $skip: skip },
-            { $limit: limitForQuery },
-            { $project: { __v: 0, searchKeywords: 0 } }
-          ],
-          totalCount: [
-            { $count: "count" }
-          ]
-        }
-      }
-    ];
-
-    // Execute optimized aggregation query
-    const [result] = await Student.aggregate(pipeline);
-    const rawStudents = result.students || [];
-    const totalStudents = result.totalCount[0]?.count || 0;
+    // Execute the search with optimized query
+    const rawStudents = await Student.find(filter)
+      .select('-__v -searchKeywords') // Exclude unnecessary fields for performance
+      .skip(skip)
+      .limit(limitForQuery)
+      .lean(); // Use lean() for better performance
 
     // Transform data to normalize field names
     const students = rawStudents.map(student => transformStudent(student));

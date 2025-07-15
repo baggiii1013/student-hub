@@ -38,6 +38,40 @@ async function apiCall(endpoint, options = {}) {
   return response.json();
 }
 
+// Helper function for public API calls (no authentication required)
+async function publicApiCall(endpoint, options = {}) {
+  const defaultOptions = {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  };
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...defaultOptions,
+    ...options,
+    headers: {
+      ...defaultOptions.headers,
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    let errorMessage = 'API call failed';
+    
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.message || errorData.error || errorMessage;
+    } catch (parseError) {
+      // If response is not JSON, use status text or generic message
+      errorMessage = response.statusText || `HTTP ${response.status} Error`;
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
 // Helper function for file downloads with authentication
 async function downloadCall(endpoint, options = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -108,6 +142,19 @@ export const studentAPI = {
     });
     
     return apiCall(`/students/search?${params}`);
+  },
+
+  // Public search function for UG number searches (no authentication required)
+  publicSearchStudents: async (searchParams = {}) => {
+    const params = new URLSearchParams();
+    
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value);
+      }
+    });
+    
+    return publicApiCall(`/students/search?${params}`);
   },
   
   downloadSearchResults: async (searchParams = {}) => {
