@@ -4,6 +4,22 @@ import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
 import Excel from 'exceljs';
 
+// Helper function to safely extract string value from Excel cell values
+function extractStringValue(cellValue) {
+  if (cellValue === null || cellValue === undefined) {
+    return '';
+  }
+  
+  // Handle hyperlink objects from Excel
+  if (typeof cellValue === 'object' && cellValue.text !== undefined) {
+    // For hyperlinks, use the hyperlink URL if available, otherwise use the text
+    return String(cellValue.hyperlink || cellValue.text);
+  }
+  
+  // Convert to string for all other cases
+  return String(cellValue);
+}
+
 async function uploadStudents(request) {
   // Track processing time to prevent timeouts
   const startTime = Date.now();
@@ -88,13 +104,15 @@ async function uploadStudents(request) {
         worksheet.eachRow((row, rowNumber) => {
           if (rowNumber === 1) return; // Skip header row
           const rowData = {};
-          row.eachCell((cell, colNumber) => {          if (headers[colNumber]) {
-            const cellValue = cell.value;
-            // Only add non-empty values
-            if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
-              rowData[headers[colNumber]] = cellValue;
+          row.eachCell((cell, colNumber) => {
+            if (headers[colNumber]) {
+              let cellValue = extractStringValue(cell.value);
+              
+              // Only add non-empty values
+              if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
+                rowData[headers[colNumber]] = cellValue;
+              }
             }
-          }
           });
           if (Object.keys(rowData).length > 0) {
             data.push(rowData);
@@ -160,7 +178,7 @@ async function uploadStudents(request) {
           mftName: row['MFT Name'] || row['mftName'] || row['Faculty Name'] || '',
           mftContactNumber: row['MFT Contact'] || row['mftContactNumber'] || row['Faculty Contact'] || '',
           phoneNumber: row['Phone Number'] || row['phoneNumber'] || row['Contact'] || '',
-          timeTable: row['Time Table'] || row['timeTable'] || row['Timetable'] || '',
+          timeTable: extractStringValue(row['Time Table'] || row['timeTable'] || row['Timetable'] || ''),
           roomNumber: row['Room Number'] || row['roomNumber'] || row['Room'] || '',
           dateOfAdmission: row['Date of Admission'] || row['dateOfAdmission'] || row['Admission Date'] || new Date(),
           email: row['Email'] || row['email'] || row['Email ID'] || '',
