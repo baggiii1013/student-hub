@@ -1,5 +1,6 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
+import { sendStudentUpdateEmail } from '@/lib/email';
 import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
 import Excel from 'exceljs';
@@ -338,13 +339,15 @@ async function uploadStudents(request) {
               const createResult = await Student.insertMany(batch, { ordered: false });
               totalCreated += createResult.length;
               
-              // Add to processed list
+              // Add to processed list and send emails
               createResult.forEach(student => {
                 processedStudents.push({
                   ugNumber: student.ugNumber,
                   name: student.name,
                   action: 'created'
                 });
+                // Send email notification
+                sendStudentUpdateEmail(student, 'created');
               });
             } catch (batchError) {
               console.error(`Error in batch ${Math.floor(i/batchSize) + 1}:`, batchError);
@@ -391,6 +394,13 @@ async function uploadStudents(request) {
             try {
               const updateResult = await Student.bulkWrite(bulkOps);
               totalUpdated += updateResult.modifiedCount;
+
+              // Send email notifications for updated students
+              if (updateResult.modifiedCount > 0) {
+                batch.forEach(studentData => {
+                  sendStudentUpdateEmail(studentData, 'updated');
+                });
+              }
             } catch (batchError) {
               console.error(`Error in update batch ${Math.floor(i/batchSize) + 1}:`, batchError);
             }
