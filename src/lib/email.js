@@ -28,7 +28,11 @@ export async function sendStudentUpdateEmail(student, action) {
       <li><strong>Branch:</strong> ${student.branch || 'Not specified'}</li>
     </ul>
     <p>You can view your full profile by logging into the <a href="${process.env.NEXTAUTH_URL}">Student Hub</a>.</p>
-    <p>If you have any questions, please contact the administration.</p>
+    <p>If you have any questions, please contact the following faculties:</p>
+    <ul>
+      <li><strong>Prof.</strong> Arnika Patel - +91 81601 09354</li>
+      <li><strong>Prof.</strong> Keya Patel - +91 91578 94779</li>
+    </ul>
     <br>
     <p>Best regards,</p>
     <p><strong>Parul University Student Hub Team</strong></p>
