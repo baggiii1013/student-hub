@@ -365,7 +365,22 @@ async function searchStudents(request) {
       .lean(); // Use lean() for better performance
 
     // Transform data to normalize field names
-    const students = rawStudents.map(student => transformStudent(student));
+    let students = rawStudents.map(student => transformStudent(student));
+    // Remove contact info for unauthenticated users
+    if (!isAuthenticated) {
+      students = students.map(student => {
+        const {
+          phoneNumber,
+          whatsappNumber,
+          fatherNumber,
+          motherNumber,
+          email,
+          mftContactNumber,
+          ...rest
+        } = student;
+        return rest;
+      });
+    }
 
     // Handle XLSX export
     if (exportFormat === 'xlsx') {

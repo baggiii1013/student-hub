@@ -72,8 +72,45 @@ async function getStudent(request, { params }) {
       return createErrorResponse('Student not found', 404);
     }
 
-    // Transform the student data
-    const transformedStudent = transformStudent(student);
+    // Try session authentication first via NextAuth
+    let authResult = await authenticateRequest(request);
+    
+    // If session auth failed, try JWT auth from headers
+    if (!authResult.authenticated) {
+      const authHeader = request.headers.get('Authorization') || request.headers.get('authorization');
+      if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        if (token) {
+          try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            authResult = { authenticated: true, user: decoded.user, authType: 'jwt' };
+          } catch (error) {
+            authResult = { authenticated: false, error: 'Invalid token' };
+          }
+        }
+      }
+    }
+      isAuthenticated: authResult.authenticated,
+      authType: authResult.authType,
+      error: authResult.error,
+      username: authResult.user?.username
+    });
+
+    console.log('Final auth result:', JSON.stringify(authResult, null, 2));
+    let transformedStudent = transformStudent(student);
+
+    // Only hide contact info if NOT authenticated
+    if (!authResult?.authenticated) {
+      transformedStudent = {
+        ...transformedStudent,
+        phoneNumber: undefined,
+        whatsappNumber: undefined,
+        fatherNumber: undefined,
+        motherNumber: undefined,
+        email: undefined,
+        mftContactNumber: undefined,
+      };
+    }
 
     const responseData = {
       success: true,
@@ -86,7 +123,6 @@ async function getStudent(request, { params }) {
     return createResponse(responseData);
 
   } catch (error) {
-    console.error('Get student error:', error);
     return createErrorResponse('Error fetching student', 500);
   }
 }
@@ -131,8 +167,6 @@ async function updateStudent(request, { params }) {
     });
 
   } catch (error) {
-    console.error('Update student error:', error);
-    
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message);

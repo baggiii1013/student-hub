@@ -2,7 +2,19 @@ const API_BASE_URL = '/api';
 
 // Helper function to make API calls
 async function apiCall(endpoint, options = {}) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  // Try to get auth token from multiple sources
+  let token = null;
+  
+  // 1. Check headers first
+  if (options.headers?.Authorization) {
+    const authHeader = options.headers.Authorization;
+    token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+  }
+  
+  // 2. Check localStorage if no token in headers
+  if (!token && typeof window !== 'undefined') {
+    token = localStorage.getItem('token');
+  }
   
   const defaultOptions = {
     headers: {

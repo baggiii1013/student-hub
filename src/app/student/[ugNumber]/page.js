@@ -173,7 +173,24 @@ export default function StudentProfilePage() {
       setLoading(true);
       setError('');
       
-      const response = await fetch(`/api/students/${ugNumber}`);
+      const token = localStorage.getItem('token');
+      
+      // First try auth context token
+      let authToken = user?.token;
+      
+      // Fallback to localStorage if not in auth context
+      if (!authToken) {
+        authToken = token;
+      }
+      
+      const headers = {
+        ...(authToken && { Authorization: `Bearer ${authToken}` })
+      };
+
+      const response = await fetch(`/api/students/${ugNumber}`, {
+        headers: headers
+      });
+      
       const data = await response.json();
       
       if (data.success) {
@@ -242,7 +259,7 @@ export default function StudentProfilePage() {
   useEffect(() => {
     setMounted(true);
     fetchStudent();
-  }, [fetchStudent]);
+  }, [fetchStudent, user]);
 
   if (loading) {
     return (

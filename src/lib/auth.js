@@ -35,16 +35,21 @@ export async function authenticateRequest(request, authOptions) {
         };
       }
     } catch (sessionError) {
-      // Log session error but continue to JWT fallback
-      console.log('Session authentication not available, trying JWT:', sessionError.message);
+      // Continue to JWT fallback
     }
     
     // Fallback to JWT token authentication
     const authHeader = request.headers.get('authorization');
-    const token = authHeader && authHeader.split(' ')[1];
+    const authHeaderAlt = request.headers.get('Authorization');
+    const finalAuthHeader = authHeader || authHeaderAlt;
+    const token = finalAuthHeader && finalAuthHeader.split(' ')[1];
 
     if (!token) {
-      return { authenticated: false, error: 'No authentication provided - please sign in' };
+      return { 
+        authenticated: false, 
+        error: 'No authentication provided - please sign in',
+        authType: 'none'
+      };
     }
 
     try {
@@ -55,15 +60,9 @@ export async function authenticateRequest(request, authOptions) {
         authType: 'jwt'
       };
     } catch (jwtError) {
-      console.error('JWT verification failed:', jwtError.message);
       return { authenticated: false, error: 'Invalid authentication token - please sign in again' };
     }
-    return { 
-      authenticated: true, 
-      user: decoded.user,
-      authType: 'jwt'      };
   } catch (error) {
-    console.error('Authentication error:', error);
     return { authenticated: false, error: 'Authentication failed: ' + error.message };
   }
 }

@@ -37,30 +37,29 @@ export function AuthProvider({ children }) {
       
       if (token && username) {
         try {
-          // Decode JWT token to get full user information
-          const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-          const userInfo = tokenPayload.user;
-          
-          // Check if token is still valid (not expired)
-          const currentTime = Date.now() / 1000;
-          if (tokenPayload.exp && tokenPayload.exp > currentTime) {
-            setUser({
-              id: userInfo.id,
-              username: userInfo.username,
-              email: userInfo.email,
-              role: userInfo.role,
-              token
-            });
-          } else {
-            // Token expired, clear it
+          // Decode token payload
+          const decodedToken = jwtDecode(token);
+
+          // Check if token has expired
+          if (decodedToken.exp * 1000 < Date.now()) {
             localStorage.removeItem('token');
             localStorage.removeItem('username');
+            setUser(null);
+            setLoading(false);
+            return;
           }
+          setUser({
+            username,
+            token,
+            ...decodedToken.user
+          });
         } catch (error) {
-          console.error('Error decoding stored JWT token:', error);
-          // Fallback to basic user info if token can't be decoded
-          setUser({ username, token });
+          localStorage.removeItem('token');
+          localStorage.removeItem('username');
+          setUser(null);
         }
+      } else {
+        setUser(null);
       }
       setLoading(false);
     }
@@ -86,7 +85,6 @@ export function AuthProvider({ children }) {
         token
       });
     } catch (error) {
-      console.error('Error decoding JWT token:', error);
       // Fallback to basic user info
       localStorage.setItem('token', token);
       localStorage.setItem('username', username);
