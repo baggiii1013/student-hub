@@ -95,7 +95,8 @@ async function getStudent(request, { params }) {
         admissionLetter: undefined,
         // Sensitive personal info
         caste: undefined,
-        state: undefined
+        state: undefined,
+        dateOfBirth:undefined
       };
     }
 

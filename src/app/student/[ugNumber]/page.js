@@ -16,7 +16,7 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
     // Document verification status
     'tenthMarksheet', 'twelfthMarksheet', 'lcTcMigrationCertificate', 'casteCertificate', 'admissionLetter',
     // Personal sensitive information
-    'caste', 'state'
+    'caste', 'state','dateOfBirth'
   ];
   const isSensitiveField = sensitiveFields.includes(field);
   
@@ -529,7 +529,7 @@ export default function StudentProfilePage() {
                         handleFieldChange={handleFieldChange}
                       />
                       
-                      <EditableField 
+                     {user && <EditableField 
                         label="Date of Birth" 
                         field="dateOfBirth" 
                         type="date"
@@ -537,7 +537,7 @@ export default function StudentProfilePage() {
                         isEditing={isEditing}
                         isAdminOrHigher={isAdminOrHigher}
                         handleFieldChange={handleFieldChange}
-                      />
+                      />}
                       
                       {user && (
                         <EditableField 
