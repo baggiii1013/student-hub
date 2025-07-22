@@ -10,7 +10,14 @@ import styles from './page.module.css';
 // Helper components for editable fields - moved outside to prevent re-creation
 const EditableField = ({ label, field, type = 'text', options = null, currentStudent, isEditing, isAdminOrHigher, handleFieldChange, user = null }) => {
   // Check if this is a sensitive field that requires login
-  const sensitiveFields = ['whatsappNumber', 'fatherNumber', 'motherNumber', 'email', 'phoneNumber'];
+  const sensitiveFields = [
+    // Contact information
+    'whatsappNumber', 'fatherNumber', 'motherNumber', 'email', 'phoneNumber',
+    // Document verification status
+    'tenthMarksheet', 'twelfthMarksheet', 'lcTcMigrationCertificate', 'casteCertificate', 'admissionLetter',
+    // Personal sensitive information
+    'caste'
+  ];
   const isSensitiveField = sensitiveFields.includes(field);
   
   if (isEditing && isAdminOrHigher()) {
@@ -106,7 +113,19 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
   }
 };
 
-const DocumentStatus = ({ label, field, currentStudent, isEditing, isAdminOrHigher, handleFieldChange }) => {
+const DocumentStatus = ({ label, field, currentStudent, isEditing, isAdminOrHigher, handleFieldChange, user = null }) => {
+  // Return null if the field is undefined (user not authenticated)
+  if (currentStudent[field] === undefined) {
+    return (
+      <div className={styles.documentStatus}>
+        <span className={styles.documentLabel}>{label}:</span>
+        <div className={styles.sensitiveContent}>
+          <span className={styles.maskedValue}>🔒 Login Required</span>
+        </div>
+      </div>
+    );
+  }
+
   if (isEditing && isAdminOrHigher()) {
     const options = field === 'casteCertificate' 
       ? [
@@ -680,60 +699,67 @@ export default function StudentProfilePage() {
                   </div>
                 </div>
 
-                {/* Document Verification Status */}
-                <div className={`${styles.cardGroup} ${styles.documentCard} ${styles.fullSpan}`}>
-                  <div className={styles.cardBg}></div>
-                  <div className={styles.card}>
-                    <h2 className={styles.sectionTitle}>
-                      <svg className={`${styles.sectionIcon} ${styles.orangeIcon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Document Verification Status
-                    </h2>
-                    <div className={styles.documentGrid}>
-                      <DocumentStatus 
-                        label="10th Marksheet" 
-                        field="tenthMarksheet"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
-                      <DocumentStatus 
-                        label="12th Marksheet" 
-                        field="twelfthMarksheet"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
-                      <DocumentStatus 
-                        label="LC/TC/Migration" 
-                        field="lcTcMigrationCertificate"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
-                      <DocumentStatus 
-                        label="Caste Certificate" 
-                        field="casteCertificate"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
-                      <DocumentStatus 
-                        label="Admission Letter" 
-                        field="admissionLetter"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
+                {/* Document Verification Status - Only shown to logged in users */}
+                {user && (
+                  <div className={`${styles.cardGroup} ${styles.documentCard} ${styles.fullSpan}`}>
+                    <div className={styles.cardBg}></div>
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionTitle}>
+                        <svg className={`${styles.sectionIcon} ${styles.orangeIcon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Document Verification Status
+                      </h2>
+                      <div className={styles.documentGrid}>
+                        <DocumentStatus 
+                          label="10th Marksheet" 
+                          field="tenthMarksheet"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                        <DocumentStatus 
+                          label="12th Marksheet" 
+                          field="twelfthMarksheet"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                        <DocumentStatus 
+                          label="LC/TC/Migration" 
+                          field="lcTcMigrationCertificate"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                        <DocumentStatus 
+                          label="Caste Certificate" 
+                          field="casteCertificate"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                        <DocumentStatus 
+                          label="Admission Letter" 
+                          field="admissionLetter"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Additional Information */}
                 <div className={`${styles.cardGroup} ${styles.additionalCard} ${styles.fullSpan}`}>

@@ -378,7 +378,7 @@ export default function Home() {
         <div className={styles.heroContainer}>
           <div className={`${styles.heroContent} ${mounted ? styles.heroContentVisible : ''}`}>
             <h2 className={styles.heroTitle}>
-              Find Student Info
+              Find Student Info only for Parul Institute for Technology(PIT) Students
             </h2>
             <p className={styles.heroSubtitle}>
               Connect, discover, and collaborate with students across campus. 

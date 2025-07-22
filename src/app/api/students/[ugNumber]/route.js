@@ -75,40 +75,26 @@ async function getStudent(request, { params }) {
     // Try session authentication first via NextAuth
     let authResult = await authenticateRequest(request);
     
-    // If session auth failed, try JWT auth from headers
-    if (!authResult.authenticated) {
-      const authHeader = request.headers.get('Authorization') || request.headers.get('authorization');
-      if (authHeader) {
-        const token = authHeader.split(' ')[1];
-        if (token) {
-          try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            authResult = { authenticated: true, user: decoded.user, authType: 'jwt' };
-          } catch (error) {
-            authResult = { authenticated: false, error: 'Invalid token' };
-          }
-        }
-      }
-    }
-      isAuthenticated: authResult.authenticated,
-      authType: authResult.authType,
-      error: authResult.error,
-      username: authResult.user?.username
-    });
-
-    console.log('Final auth result:', JSON.stringify(authResult, null, 2));
     let transformedStudent = transformStudent(student);
 
-    // Only hide contact info if NOT authenticated
+    // Hide sensitive info for unauthenticated users
     if (!authResult?.authenticated) {
       transformedStudent = {
         ...transformedStudent,
+        // Contact information
         phoneNumber: undefined,
         whatsappNumber: undefined,
         fatherNumber: undefined,
         motherNumber: undefined,
         email: undefined,
-        mftContactNumber: undefined,
+        // Document verification status
+        tenthMarksheet: undefined,
+        twelfthMarksheet: undefined,
+        lcTcMigrationCertificate: undefined,
+        casteCertificate: undefined,
+        admissionLetter: undefined,
+        // Sensitive personal info
+        caste: undefined
       };
     }
 
