@@ -16,7 +16,7 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
     // Document verification status
     'tenthMarksheet', 'twelfthMarksheet', 'lcTcMigrationCertificate', 'casteCertificate', 'admissionLetter',
     // Personal sensitive information
-    'caste', 'state','dateOfBirth'
+    'caste', 'state'
   ];
   const isSensitiveField = sensitiveFields.includes(field);
   
