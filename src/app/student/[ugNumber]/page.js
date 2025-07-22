@@ -186,6 +186,7 @@ export default function StudentProfilePage() {
   const [editedStudent, setEditedStudent] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const fetchStudent = useCallback(async () => {
     try {
@@ -203,11 +204,15 @@ export default function StudentProfilePage() {
       }
       
       const headers = {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
         ...(authToken && { Authorization: `Bearer ${authToken}` })
       };
 
       const response = await fetch(`/api/students/${ugNumber}`, {
-        headers: headers
+        headers: headers,
+        cache: 'no-cache' // Ensure fresh data
       });
       
       const data = await response.json();
@@ -224,7 +229,7 @@ export default function StudentProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [ugNumber]);
+  }, [ugNumber, user?.token]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -243,12 +248,26 @@ export default function StudentProfilePage() {
       setSaving(true);
       setSaveError('');
 
+      const token = localStorage.getItem('token');
+      
+      // First try auth context token
+      let authToken = user?.token;
+      
+      // Fallback to localStorage if not in auth context
+      if (!authToken) {
+        authToken = token;
+      }
+
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(authToken && { Authorization: `Bearer ${authToken}` })
+      };
+
       const response = await fetch(`/api/students/${ugNumber}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(editedStudent),
+        cache: 'no-cache' // Prevent caching of the update request
       });
 
       const data = await response.json();
@@ -257,6 +276,11 @@ export default function StudentProfilePage() {
         setStudent(data.data);
         setEditedStudent(data.data);
         setIsEditing(false);
+        
+        // Force refresh the data from server to ensure we have the latest
+        setTimeout(() => {
+          fetchStudent();
+        }, 100);
       } else {
         setSaveError(data.message || 'Failed to save changes');
       }

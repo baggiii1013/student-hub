@@ -31,6 +31,21 @@ class MemoryCache {
     this.cache.delete(key);
   }
 
+  // Delete multiple keys matching a pattern
+  deletePattern(pattern) {
+    const regex = new RegExp(pattern);
+    const keysToDelete = [];
+    
+    for (const key of this.cache.keys()) {
+      if (regex.test(key)) {
+        keysToDelete.push(key);
+      }
+    }
+    
+    keysToDelete.forEach(key => this.cache.delete(key));
+    return keysToDelete.length;
+  }
+
   clear() {
     this.cache.clear();
   }
@@ -70,8 +85,21 @@ export function withCache(key, ttl = 300000) {
   return {
     get: () => apiCache.get(key),
     set: (value) => apiCache.set(key, value, ttl),
-    delete: () => apiCache.delete(key)
+    delete: () => apiCache.delete(key),
+    deletePattern: (pattern) => apiCache.deletePattern(pattern)
   };
+}
+
+// Helper function to invalidate related cache entries
+export function invalidateStudentCache(ugNumber) {
+  // Invalidate specific student cache
+  const studentCacheKey = generateCacheKey('student_detail', { ugNumber });
+  apiCache.delete(studentCacheKey);
+  
+  // Invalidate search caches that might contain this student
+  const deletedCount = apiCache.deletePattern('student_search:.*');
+  
+  console.log(`Invalidated ${deletedCount + 1} cache entries for student ${ugNumber}`);
 }
 
 export default apiCache;

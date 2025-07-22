@@ -1,5 +1,5 @@
 import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
-import { generateCacheKey, withCache } from '@/lib/cache';
+import { generateCacheKey, invalidateStudentCache, withCache } from '@/lib/cache';
 import { generalRateLimiter, withRateLimit } from '@/lib/rateLimiter';
 import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
@@ -117,8 +117,20 @@ async function getStudent(request, { params }) {
 
 async function updateStudent(request, { params }) {
   try {
-    // Database connection is already established by withDatabase wrapper
+    // Authenticate the request first
+    const authResult = await authenticateRequest(request);
+    
+    if (!authResult?.authenticated) {
+      return createErrorResponse('Authentication required', 401);
+    }
 
+    // Check if user has permission to update student data
+    const userRole = authResult.user?.role;
+    if (!['superAdmin', 'admin', 'moderator'].includes(userRole)) {
+      return createErrorResponse('Insufficient permissions', 403);
+    }
+
+    // Database connection is already established by withDatabase wrapper
     const { ugNumber } = await params;
     const updateData = await request.json();
 
@@ -148,6 +160,9 @@ async function updateStudent(request, { params }) {
     // Transform the updated student data
     const transformedStudent = transformStudent(student.toObject());
 
+    // IMPORTANT: Invalidate cache after successful update
+    invalidateStudentCache(ugNumber);
+
     return createResponse({
       success: true,
       data: transformedStudent,
@@ -155,6 +170,8 @@ async function updateStudent(request, { params }) {
     });
 
   } catch (error) {
+    console.error('Error updating student:', error);
+    
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message);

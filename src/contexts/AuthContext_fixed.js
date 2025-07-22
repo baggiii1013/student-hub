@@ -72,22 +72,17 @@ export function AuthProvider({ children }) {
   // Initialize session management
   useEffect(() => {
     SessionManager.init();
-    setIsOnline(NetworkManager.isOnline());
-  }, []);
-
-  // Set up network monitoring
-  useEffect(() => {
-    const handleNetworkChange = (online) => {
+    
+    // Set up network monitoring
+    NetworkManager.onNetworkChange((online) => {
       setIsOnline(online);
       if (online && user) {
         // Revalidate session when coming back online
         checkSession();
       }
-    };
-
-    NetworkManager.onNetworkChange(handleNetworkChange);
+    });
     
-    // Cleanup is not needed as NetworkManager handles it internally
+    setIsOnline(NetworkManager.isOnline());
   }, [user, checkSession]);
 
   useEffect(() => {
