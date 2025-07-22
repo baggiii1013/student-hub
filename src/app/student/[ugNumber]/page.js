@@ -16,7 +16,7 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
     // Document verification status
     'tenthMarksheet', 'twelfthMarksheet', 'lcTcMigrationCertificate', 'casteCertificate', 'admissionLetter',
     // Personal sensitive information
-    'caste'
+    'caste', 'state'
   ];
   const isSensitiveField = sensitiveFields.includes(field);
   
@@ -539,33 +539,39 @@ export default function StudentProfilePage() {
                         handleFieldChange={handleFieldChange}
                       />
                       
-                      <EditableField 
-                        label="Caste" 
-                        field="caste" 
-                        type="select"
-                        options={[
-                          { value: 'General(open)', label: 'General (Open)' },
-                          { value: 'OBC', label: 'OBC' },
-                          { value: 'SC', label: 'SC' },
-                          { value: 'ST', label: 'ST' },
-                          { value: 'EBC', label: 'EBC' },
-                          { value: 'NT/DNT', label: 'NT/DNT' },
-                          { value: 'Other', label: 'Other' }
-                        ]}
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
+                      {user && (
+                        <EditableField 
+                          label="Caste" 
+                          field="caste" 
+                          type="select"
+                          options={[
+                            { value: 'General(open)', label: 'General (Open)' },
+                            { value: 'OBC', label: 'OBC' },
+                            { value: 'SC', label: 'SC' },
+                            { value: 'ST', label: 'ST' },
+                            { value: 'EBC', label: 'EBC' },
+                            { value: 'NT/DNT', label: 'NT/DNT' },
+                            { value: 'Other', label: 'Other' }
+                          ]}
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                      )}
                       
-                      <EditableField 
-                        label="State" 
-                        field="state"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
+                      {user && (
+                        <EditableField 
+                          label="State" 
+                          field="state"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                      )}
                       
                       <EditableField 
                         label="Division" 

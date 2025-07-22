@@ -94,7 +94,8 @@ async function getStudent(request, { params }) {
         casteCertificate: undefined,
         admissionLetter: undefined,
         // Sensitive personal info
-        caste: undefined
+        caste: undefined,
+        state: undefined
       };
     }
 
