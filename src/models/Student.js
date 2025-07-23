@@ -12,8 +12,8 @@ const studentSchema = new mongoose.Schema({
   ugNumber: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true
+    // Removed index: true since we define it separately below
   },
   enrollmentNo: {
     type: String,
@@ -21,8 +21,8 @@ const studentSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: true,
-    index: true
+    required: true
+    // Removed index: true since we define it separately below
   },
   fullNameAs12th: {
     type: String,
@@ -61,7 +61,7 @@ const studentSchema = new mongoose.Schema({
   branch: {
     type: String,
     default: '',
-    enum: ['CSE', 'CE', 'AI', 'CS', 'OTHER'],
+    enum: ['CSE', 'CE', 'AI', 'CS', 'OTHER', ''], // Allow empty string
   },
   // Document verification fields
   tenthMarksheet: {
@@ -141,7 +141,16 @@ const studentSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Create text indexes for search
+// Create optimized indexes for better query performance
+studentSchema.index({ ugNumber: 1 }, { unique: true }); // Primary lookup
+studentSchema.index({ name: 1 }); // Name searches
+studentSchema.index({ branch: 1, division: 1, batch: 1 }); // Filter combinations
+studentSchema.index({ dateOfAdmission: 1 }); // Date range queries
+studentSchema.index({ "Sr No": 1 }); // Sorting by serial number
+studentSchema.index({ branch: 1, dateOfAdmission: 1 }); // SuperAdmin filtering
+studentSchema.index({ btechDiploma: 1 }); // Filter by program type
+
+// Create text indexes for search (separate from other indexes for better performance)
 studentSchema.index({
   name: 'text',
   fullNameAs12th: 'text',
@@ -151,6 +160,18 @@ studentSchema.index({
   mftName: 'text',
   state: 'text',
   caste: 'text'
+}, {
+  name: 'text_search_index',
+  weights: {
+    ugNumber: 10, // Higher weight for UG number searches
+    name: 5,
+    fullNameAs12th: 3,
+    branch: 1,
+    division: 1,
+    mftName: 1,
+    state: 1,
+    caste: 1
+  }
 });
 
 // Pre-save hook to generate search keywords - only for individual saves

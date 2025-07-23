@@ -1,5 +1,7 @@
 import { createErrorResponse, createResponse } from '@/lib/auth';
+import { generateCacheKey, withCache } from '@/lib/cache';
 import connectDB from '@/lib/dbConnection';
+import { generalRateLimiter, withRateLimit } from '@/lib/rateLimiter';
 import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
 
@@ -32,23 +34,47 @@ async function getStudents(request) {
     // Connection is already established by withDatabase wrapper
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 50;
+    const limit = Math.min(parseInt(searchParams.get('limit')) || 50, 100); // Cap limit at 100
+
+    // Generate cache key
+    const cacheKey = generateCacheKey('students_list', { page, limit });
+    
+    // Check cache first
+    const cache = withCache(cacheKey, 120000); // 2 minutes cache
+    const cachedResult = cache.get();
+    if (cachedResult) {
+      return createResponse(cachedResult);
+    }
 
     const skip = (page - 1) * limit;
     
-    const rawStudents = await Student.find()
-      .sort({ "Sr No": 1 })
-      .skip(skip)
-      .limit(limit)
-      .select('-__v -searchKeywords');
+    // Use aggregation for better performance
+    const pipeline = [
+      { $sort: { "Sr No": 1 } },
+      {
+        $facet: {
+          students: [
+            { $skip: skip },
+            { $limit: limit },
+            { $project: { __v: 0, searchKeywords: 0 } }
+          ],
+          totalCount: [
+            { $count: "count" }
+          ]
+        }
+      }
+    ];
+
+    const [result] = await Student.aggregate(pipeline);
+    const rawStudents = result.students || [];
+    const totalStudents = result.totalCount[0]?.count || 0;
 
     // Transform data to normalize field names
-    const students = rawStudents.map(student => transformStudent(student.toObject()));
+    const students = rawStudents.map(student => transformStudent(student));
 
-    const totalStudents = await Student.countDocuments();
     const totalPages = Math.ceil(totalStudents / limit);
 
-    return createResponse({
+    const responseData = {
       success: true,
       data: students,
       pagination: {
@@ -58,7 +84,12 @@ async function getStudents(request) {
         hasNextPage: page < totalPages,
         hasPrevPage: page > 1
       }
-    });
+    };
+
+    // Cache the result
+    cache.set(responseData);
+
+    return createResponse(responseData);
 
   } catch (error) {
     console.error('Get students error:', error);
@@ -66,5 +97,5 @@ async function getStudents(request) {
   }
 }
 
-// Export the wrapped function
-export const GET = withDatabase(getStudents);
+// Export the wrapped function with rate limiting
+export const GET = withRateLimit(generalRateLimiter)(withDatabase(getStudents));

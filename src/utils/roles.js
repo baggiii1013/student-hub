@@ -51,8 +51,14 @@ export function roleHasPermission(role, permission) {
  * Check if a role is equal to or higher than another role
  */
 export function roleIsEqualOrHigher(userRole, requiredRole) {
-  const userLevel = ROLE_HIERARCHY[userRole] || 0;
-  const requiredLevel = ROLE_HIERARCHY[requiredRole] || 0;
+  const userLevel = ROLE_HIERARCHY[userRole];
+  const requiredLevel = ROLE_HIERARCHY[requiredRole];
+
+  // If either role is invalid, they cannot be compared
+  if (userLevel === undefined || requiredLevel === undefined) {
+    return false;
+  }
+
   return userLevel >= requiredLevel;
 }
 

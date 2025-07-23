@@ -10,7 +10,14 @@ import styles from './page.module.css';
 // Helper components for editable fields - moved outside to prevent re-creation
 const EditableField = ({ label, field, type = 'text', options = null, currentStudent, isEditing, isAdminOrHigher, handleFieldChange, user = null }) => {
   // Check if this is a sensitive field that requires login
-  const sensitiveFields = ['whatsappNumber', 'fatherNumber', 'motherNumber', 'email', 'phoneNumber'];
+  const sensitiveFields = [
+    // Contact information
+    'whatsappNumber', 'fatherNumber', 'motherNumber', 'email', 'phoneNumber',
+    // Document verification status
+    'tenthMarksheet', 'twelfthMarksheet', 'lcTcMigrationCertificate', 'casteCertificate', 'admissionLetter',
+    // Personal sensitive information
+    'caste', 'state'
+  ];
   const isSensitiveField = sensitiveFields.includes(field);
   
   if (isEditing && isAdminOrHigher()) {
@@ -106,7 +113,19 @@ const EditableField = ({ label, field, type = 'text', options = null, currentStu
   }
 };
 
-const DocumentStatus = ({ label, field, currentStudent, isEditing, isAdminOrHigher, handleFieldChange }) => {
+const DocumentStatus = ({ label, field, currentStudent, isEditing, isAdminOrHigher, handleFieldChange, user = null }) => {
+  // Return null if the field is undefined (user not authenticated)
+  if (currentStudent[field] === undefined) {
+    return (
+      <div className={styles.documentStatus}>
+        <span className={styles.documentLabel}>{label}:</span>
+        <div className={styles.sensitiveContent}>
+          <span className={styles.maskedValue}>🔒 Login Required</span>
+        </div>
+      </div>
+    );
+  }
+
   if (isEditing && isAdminOrHigher()) {
     const options = field === 'casteCertificate' 
       ? [
@@ -167,13 +186,35 @@ export default function StudentProfilePage() {
   const [editedStudent, setEditedStudent] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const fetchStudent = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
       
-      const response = await fetch(`/api/students/${ugNumber}`);
+      const token = localStorage.getItem('token');
+      
+      // First try auth context token
+      let authToken = user?.token;
+      
+      // Fallback to localStorage if not in auth context
+      if (!authToken) {
+        authToken = token;
+      }
+      
+      const headers = {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        ...(authToken && { Authorization: `Bearer ${authToken}` })
+      };
+
+      const response = await fetch(`/api/students/${ugNumber}`, {
+        headers: headers,
+        cache: 'no-cache' // Ensure fresh data
+      });
+      
       const data = await response.json();
       
       if (data.success) {
@@ -188,7 +229,7 @@ export default function StudentProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [ugNumber]);
+  }, [ugNumber, user?.token]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -207,12 +248,26 @@ export default function StudentProfilePage() {
       setSaving(true);
       setSaveError('');
 
+      const token = localStorage.getItem('token');
+      
+      // First try auth context token
+      let authToken = user?.token;
+      
+      // Fallback to localStorage if not in auth context
+      if (!authToken) {
+        authToken = token;
+      }
+
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(authToken && { Authorization: `Bearer ${authToken}` })
+      };
+
       const response = await fetch(`/api/students/${ugNumber}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(editedStudent),
+        cache: 'no-cache' // Prevent caching of the update request
       });
 
       const data = await response.json();
@@ -221,6 +276,11 @@ export default function StudentProfilePage() {
         setStudent(data.data);
         setEditedStudent(data.data);
         setIsEditing(false);
+        
+        // Force refresh the data from server to ensure we have the latest
+        setTimeout(() => {
+          fetchStudent();
+        }, 100);
       } else {
         setSaveError(data.message || 'Failed to save changes');
       }
@@ -242,7 +302,7 @@ export default function StudentProfilePage() {
   useEffect(() => {
     setMounted(true);
     fetchStudent();
-  }, [fetchStudent]);
+  }, [fetchStudent, user]);
 
   if (loading) {
     return (
@@ -493,7 +553,7 @@ export default function StudentProfilePage() {
                         handleFieldChange={handleFieldChange}
                       />
                       
-                      <EditableField 
+                     {user && <EditableField 
                         label="Date of Birth" 
                         field="dateOfBirth" 
                         type="date"
@@ -501,35 +561,41 @@ export default function StudentProfilePage() {
                         isEditing={isEditing}
                         isAdminOrHigher={isAdminOrHigher}
                         handleFieldChange={handleFieldChange}
-                      />
+                      />}
                       
-                      <EditableField 
-                        label="Caste" 
-                        field="caste" 
-                        type="select"
-                        options={[
-                          { value: 'General(open)', label: 'General (Open)' },
-                          { value: 'OBC', label: 'OBC' },
-                          { value: 'SC', label: 'SC' },
-                          { value: 'ST', label: 'ST' },
-                          { value: 'EBC', label: 'EBC' },
-                          { value: 'NT/DNT', label: 'NT/DNT' },
-                          { value: 'Other', label: 'Other' }
-                        ]}
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
+                      {user && (
+                        <EditableField 
+                          label="Caste" 
+                          field="caste" 
+                          type="select"
+                          options={[
+                            { value: 'General(open)', label: 'General (Open)' },
+                            { value: 'OBC', label: 'OBC' },
+                            { value: 'SC', label: 'SC' },
+                            { value: 'ST', label: 'ST' },
+                            { value: 'EBC', label: 'EBC' },
+                            { value: 'NT/DNT', label: 'NT/DNT' },
+                            { value: 'Other', label: 'Other' }
+                          ]}
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                      )}
                       
-                      <EditableField 
-                        label="State" 
-                        field="state"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
+                      {user && (
+                        <EditableField 
+                          label="State" 
+                          field="state"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                      )}
                       
                       <EditableField 
                         label="Division" 
@@ -663,60 +729,67 @@ export default function StudentProfilePage() {
                   </div>
                 </div>
 
-                {/* Document Verification Status */}
-                <div className={`${styles.cardGroup} ${styles.documentCard} ${styles.fullSpan}`}>
-                  <div className={styles.cardBg}></div>
-                  <div className={styles.card}>
-                    <h2 className={styles.sectionTitle}>
-                      <svg className={`${styles.sectionIcon} ${styles.orangeIcon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Document Verification Status
-                    </h2>
-                    <div className={styles.documentGrid}>
-                      <DocumentStatus 
-                        label="10th Marksheet" 
-                        field="tenthMarksheet"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
-                      <DocumentStatus 
-                        label="12th Marksheet" 
-                        field="twelfthMarksheet"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
-                      <DocumentStatus 
-                        label="LC/TC/Migration" 
-                        field="lcTcMigrationCertificate"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
-                      <DocumentStatus 
-                        label="Caste Certificate" 
-                        field="casteCertificate"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
-                      <DocumentStatus 
-                        label="Admission Letter" 
-                        field="admissionLetter"
-                        currentStudent={currentStudent}
-                        isEditing={isEditing}
-                        isAdminOrHigher={isAdminOrHigher}
-                        handleFieldChange={handleFieldChange}
-                      />
+                {/* Document Verification Status - Only shown to logged in users */}
+                {user && (
+                  <div className={`${styles.cardGroup} ${styles.documentCard} ${styles.fullSpan}`}>
+                    <div className={styles.cardBg}></div>
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionTitle}>
+                        <svg className={`${styles.sectionIcon} ${styles.orangeIcon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Document Verification Status
+                      </h2>
+                      <div className={styles.documentGrid}>
+                        <DocumentStatus 
+                          label="10th Marksheet" 
+                          field="tenthMarksheet"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                        <DocumentStatus 
+                          label="12th Marksheet" 
+                          field="twelfthMarksheet"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                        <DocumentStatus 
+                          label="LC/TC/Migration" 
+                          field="lcTcMigrationCertificate"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                        <DocumentStatus 
+                          label="Caste Certificate" 
+                          field="casteCertificate"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                        <DocumentStatus 
+                          label="Admission Letter" 
+                          field="admissionLetter"
+                          currentStudent={currentStudent}
+                          isEditing={isEditing}
+                          isAdminOrHigher={isAdminOrHigher}
+                          handleFieldChange={handleFieldChange}
+                          user={user}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Additional Information */}
                 <div className={`${styles.cardGroup} ${styles.additionalCard} ${styles.fullSpan}`}>

@@ -1,3 +1,4 @@
+import ConnectionStatus from "@/components/ConnectionStatus";
 import Footer from "@/components/Footer";
 import { NextAuthProvider } from "@/components/NextAuthProvider";
 import { ToastProvider } from "@/components/ToastProvider";
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
         <Analytics/>
         <NextAuthProvider>
           <AuthProvider>
+            <ConnectionStatus />
             <div className={styles.container}>
               <div className={styles.main}>
                 {children}

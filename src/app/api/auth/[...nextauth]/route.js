@@ -7,15 +7,16 @@ import GoogleProvider from 'next-auth/providers/google';
 
 const client = new MongoClient(process.env.MONGODB_URI, {
   ssl: true,
-  serverSelectionTimeoutMS: 30000,
-  connectTimeoutMS: 30000,
-  socketTimeoutMS: 45000,
+  serverSelectionTimeoutMS: 10000, // Reduced timeout for faster auth
+  connectTimeoutMS: 10000,
+  socketTimeoutMS: 20000,
   retryWrites: true,
-  maxPoolSize: 10,
-  minPoolSize: 1,
-  maxIdleTimeMS: 30000,
-  waitQueueTimeoutMS: 10000,
-  heartbeatFrequencyMS: 10000,
+  maxPoolSize: 20, // Increased pool size for auth operations
+  minPoolSize: 2,
+  maxIdleTimeMS: 15000, // Shorter idle time
+  waitQueueTimeoutMS: 5000,
+  heartbeatFrequencyMS: 5000, // More frequent heartbeats
+  compressors: [], // Disable compression for auth speed
 });
 const clientPromise = client.connect();
 
@@ -44,19 +45,15 @@ async function withDBConnection(callback) {
       lastError = error;
       retries--;
       
-      console.error(`Database connection error in NextAuth (retries left: ${retries}):`, error);
-      
-      // If it's an SSL/TLS error, wait a bit before retrying
-      if (error.message.includes('SSL') || error.message.includes('TLS') || error.message.includes('ssl3_read_bytes')) {
-        console.error('SSL/TLS error detected, waiting 2 seconds before retry...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-      
-      // If no retries left, throw the error
-      if (retries === 0) {
-        console.error('All database connection retries exhausted');
-        throw error;
-      }
+      console.error(`Database connection error in NextAuth (retries left: ${retries}):`, error);        // If it's an SSL/TLS error, wait a bit before retrying
+        if (error.message.includes('SSL') || error.message.includes('TLS') || error.message.includes('ssl3_read_bytes')) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        
+        // If no retries left, throw the error
+        if (retries === 0) {
+          throw error;
+        }
     }
   }
   
@@ -140,14 +137,12 @@ const authOptions = {
           });
         } catch (error) {
           console.error('Error during sign in:', error);
-          console.error('Error stack:', error.stack);
           
           // If it's a database connection error, still allow OAuth sign-in
           // The user data will be handled when the database is available again
           if (error.message.includes('SSL') || error.message.includes('TLS') || 
               error.message.includes('MongoServerSelectionError') || 
               error.message.includes('MongoNetworkError')) {
-            console.log('Database connection issue detected, allowing OAuth sign-in to proceed');
             return true;
           }
           
@@ -196,7 +191,6 @@ const authOptions = {
           if (error.message.includes('SSL') || error.message.includes('TLS') || 
               error.message.includes('MongoServerSelectionError') || 
               error.message.includes('MongoNetworkError')) {
-            console.log('Database connection issue in JWT callback, creating minimal token');
             token.user = {
               id: user.id || user.email,
               username: user.email.split('@')[0],
@@ -226,6 +220,10 @@ const authOptions = {
   },
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // Update session every 24 hours
+  },
+  jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
@@ -276,9 +274,28 @@ const authOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 // 30 days
+      }
+    },
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
         secure: process.env.NODE_ENV === 'production'
       }
     },
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production'
+      }
+    }
   }
 };
 

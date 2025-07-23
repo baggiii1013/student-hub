@@ -1,6 +1,9 @@
 import { authenticateRequest, createErrorResponse, createResponse } from '@/lib/auth';
+import { generateCacheKey, invalidateStudentCache, withCache } from '@/lib/cache';
+import { generalRateLimiter, withRateLimit } from '@/lib/rateLimiter';
 import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
+// ...existing code...
 
 // Transform student data to normalize field names
 function transformStudent(studentObj) {
@@ -44,39 +47,91 @@ async function getStudent(request, { params }) {
 
     const { ugNumber } = await params;
 
-    // Find student by UG number (handle both formats)
-    const student = await Student.findOne({
-      $or: [
-        { "UG Number": ugNumber },
-        { ugNumber: ugNumber }
-      ]
-    }).select('-__v -searchKeywords');
-    
+    // Authenticate request
+    const authResult = await authenticateRequest(request);
+
+    // Generate cache key based on authentication status
+    const cacheKey = generateCacheKey('student_detail', { ugNumber, auth: authResult?.authenticated ? 'auth' : 'anon' });
+
+    // Check cache first
+    const cache = withCache(cacheKey, 300000); // 5 minutes cache for individual students
+    const cachedResult = cache.get();
+    if (cachedResult) {
+      return createResponse(cachedResult);
+    }
+
+    // Optimized query using direct ugNumber match first, then fallback
+    let student = await Student.findOne({ ugNumber: ugNumber })
+      .select('-__v -searchKeywords')
+      .lean(); // Use lean() for better performance
+
+    // Fallback to legacy field name if not found
+    if (!student) {
+      student = await Student.findOne({ "UG Number": ugNumber })
+        .select('-__v -searchKeywords')
+        .lean();
+    }
+
     if (!student) {
       return createErrorResponse('Student not found', 404);
     }
 
-    // Transform the student data
-    const transformedStudent = transformStudent(student.toObject());
+    let transformedStudent = transformStudent(student);
 
-    return createResponse({
+    // Hide sensitive info for unauthenticated users
+    if (!authResult?.authenticated) {
+      transformedStudent = {
+        ...transformedStudent,
+        // Contact information
+        phoneNumber: null,
+        whatsappNumber: null,
+        fatherNumber: null,
+        motherNumber: null,
+        email: null,
+        // Document verification status
+        tenthMarksheet: null,
+        twelfthMarksheet: null,
+        lcTcMigrationCertificate: null,
+        casteCertificate: null,
+        admissionLetter: null,
+        // Sensitive personal info
+        caste: null,
+        state: null,
+        dateOfBirth: null
+      };
+    }
+
+    const responseData = {
       success: true,
       data: transformedStudent
-    });
+    };
+
+    // Cache the result
+    cache.set(responseData);
+
+    return createResponse(responseData);
 
   } catch (error) {
-    console.error('Get student error:', error);
     return createErrorResponse('Error fetching student', 500);
   }
 }
 
 async function updateStudent(request, { params }) {
   try {
-    // Check authentication - for now, we'll skip authentication to fix the immediate issue
-    // TODO: Implement proper authentication check
+    // Authenticate the request first
+    const authResult = await authenticateRequest(request);
+    
+    if (!authResult?.authenticated) {
+      return createErrorResponse('Authentication required', 401);
+    }
+
+    // Check if user has permission to update student data
+    const userRole = authResult.user?.role;
+    if (!['superAdmin', 'admin', 'moderator'].includes(userRole)) {
+      return createErrorResponse('Insufficient permissions', 403);
+    }
 
     // Database connection is already established by withDatabase wrapper
-
     const { ugNumber } = await params;
     const updateData = await request.json();
 
@@ -106,6 +161,9 @@ async function updateStudent(request, { params }) {
     // Transform the updated student data
     const transformedStudent = transformStudent(student.toObject());
 
+    // IMPORTANT: Invalidate cache after successful update
+    invalidateStudentCache(ugNumber);
+
     return createResponse({
       success: true,
       data: transformedStudent,
@@ -113,7 +171,7 @@ async function updateStudent(request, { params }) {
     });
 
   } catch (error) {
-    console.error('Update student error:', error);
+    console.error('Error updating student:', error);
     
     // Handle validation errors
     if (error.name === 'ValidationError') {
@@ -125,6 +183,6 @@ async function updateStudent(request, { params }) {
   }
 }
 
-// Export the wrapped functions
-export const GET = withDatabase(getStudent);
-export const PUT = withDatabase(updateStudent);
+// Export the wrapped functions with rate limiting
+export const GET = withRateLimit(generalRateLimiter)(withDatabase(getStudent));
+export const PUT = withRateLimit(generalRateLimiter)(withDatabase(updateStudent));
