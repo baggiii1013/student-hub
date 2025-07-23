@@ -366,20 +366,27 @@ async function searchStudents(request) {
 
     // Transform data to normalize field names
     let students = rawStudents.map(student => transformStudent(student));
-    // Remove contact info for unauthenticated users
-    if (!isAuthenticated) {
-      students = students.map(student => {
-        const {
-          phoneNumber,
-          whatsappNumber,
-          fatherNumber,
-          motherNumber,
-          email,
-          mftContactNumber,
-          ...rest
-        } = student;
-        return rest;
-      });
+    // Remove sensitive info for unauthenticated users and non-privileged roles
+    const privilegedRoles = ['admin', 'superAdmin', 'moderator'];
+    const shouldHideSensitive = !isAuthenticated || !privilegedRoles.includes(userRole);
+    if (shouldHideSensitive) {
+      students = students.map(student => ({
+        ...student,
+        phoneNumber: null,
+        whatsappNumber: null,
+        fatherNumber: null,
+        motherNumber: null,
+        email: null,
+        mftContactNumber: null,
+        tenthMarksheet: null,
+        twelfthMarksheet: null,
+        lcTcMigrationCertificate: null,
+        casteCertificate: null,
+        admissionLetter: null,
+        caste: null,
+        state: null,
+        dateOfBirth: null
+      }));
     }
 
     // Handle XLSX export
