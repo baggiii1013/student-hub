@@ -92,14 +92,15 @@ export function withCache(key, ttl = 300000) {
 
 // Helper function to invalidate related cache entries
 export function invalidateStudentCache(ugNumber) {
-  // Invalidate specific student cache
-  const studentCacheKey = generateCacheKey('student_detail', { ugNumber });
-  apiCache.delete(studentCacheKey);
+  // Invalidate both authenticated and unauthenticated student cache
+  const studentCacheKeyAuth = generateCacheKey('student_detail', { ugNumber, auth: 'auth' });
+  const studentCacheKeyAnon = generateCacheKey('student_detail', { ugNumber, auth: 'anon' });
+  apiCache.delete(studentCacheKeyAuth);
+  apiCache.delete(studentCacheKeyAnon);
   
   // Invalidate search caches that might contain this student
   const deletedCount = apiCache.deletePattern('student_search:.*');
-  
-  console.log(`Invalidated ${deletedCount + 1} cache entries for student ${ugNumber}`);
+  console.log(`Invalidated ${deletedCount + 2} cache entries for student ${ugNumber}`);
 }
 
 export default apiCache;

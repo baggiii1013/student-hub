@@ -3,6 +3,7 @@ import { generateCacheKey, invalidateStudentCache, withCache } from '@/lib/cache
 import { generalRateLimiter, withRateLimit } from '@/lib/rateLimiter';
 import withDatabase from '@/lib/withDatabase';
 import Student from '@/models/Student';
+// ...existing code...
 
 // Transform student data to normalize field names
 function transformStudent(studentObj) {
@@ -46,9 +47,12 @@ async function getStudent(request, { params }) {
 
     const { ugNumber } = await params;
 
-    // Generate cache key
-    const cacheKey = generateCacheKey('student_detail', { ugNumber });
-    
+    // Authenticate request
+    const authResult = await authenticateRequest(request);
+
+    // Generate cache key based on authentication status
+    const cacheKey = generateCacheKey('student_detail', { ugNumber, auth: authResult?.authenticated ? 'auth' : 'anon' });
+
     // Check cache first
     const cache = withCache(cacheKey, 300000); // 5 minutes cache for individual students
     const cachedResult = cache.get();
@@ -60,21 +64,18 @@ async function getStudent(request, { params }) {
     let student = await Student.findOne({ ugNumber: ugNumber })
       .select('-__v -searchKeywords')
       .lean(); // Use lean() for better performance
-    
+
     // Fallback to legacy field name if not found
     if (!student) {
       student = await Student.findOne({ "UG Number": ugNumber })
         .select('-__v -searchKeywords')
         .lean();
     }
-    
+
     if (!student) {
       return createErrorResponse('Student not found', 404);
     }
 
-    // Try session authentication first via NextAuth
-    let authResult = await authenticateRequest(request);
-    
     let transformedStudent = transformStudent(student);
 
     // Hide sensitive info for unauthenticated users
@@ -82,21 +83,21 @@ async function getStudent(request, { params }) {
       transformedStudent = {
         ...transformedStudent,
         // Contact information
-        phoneNumber: undefined,
-        whatsappNumber: undefined,
-        fatherNumber: undefined,
-        motherNumber: undefined,
-        email: undefined,
+        phoneNumber: null,
+        whatsappNumber: null,
+        fatherNumber: null,
+        motherNumber: null,
+        email: null,
         // Document verification status
-        tenthMarksheet: undefined,
-        twelfthMarksheet: undefined,
-        lcTcMigrationCertificate: undefined,
-        casteCertificate: undefined,
-        admissionLetter: undefined,
+        tenthMarksheet: null,
+        twelfthMarksheet: null,
+        lcTcMigrationCertificate: null,
+        casteCertificate: null,
+        admissionLetter: null,
         // Sensitive personal info
-        caste: undefined,
-        state: undefined,
-        dateOfBirth:undefined
+        caste: null,
+        state: null,
+        dateOfBirth: null
       };
     }
 

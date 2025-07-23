@@ -241,7 +241,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('token');
         localStorage.removeItem('username');
         setUser(null);
-        router.push('/login');
+        router.push('/');
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -250,7 +250,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('username');
       SessionManager.clearSessionBackup();
       setUser(null);
-      router.push('/login');
+      router.push('/');
     }
   };
 
