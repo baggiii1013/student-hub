@@ -1,0 +1,7 @@
+# Student Hub
+
+> Connect, discover, and collaborate with students across campus at Parul Institute of Technology (PIT).
+
+## Pages
+
+- [Student Hub](https://parul-student-hub.vercel.app/): Connect, discover, and collaborate with students across campus

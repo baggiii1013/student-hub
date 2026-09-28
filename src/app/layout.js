@@ -21,8 +21,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Student Hub",
-  description: "Connect, discover, and collaborate with students across campus",
+  metadataBase: new URL("https://parul-student-hub.vercel.app"),
+  title: {
+    default: "Student Hub — Parul Institute of Technology",
+    template: "%s | Student Hub",
+  },
+  description:
+    "Connect, discover, and collaborate with students across campus. Search student information and academic details at Parul Institute of Technology.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Student Hub — Parul Institute of Technology",
+    description:
+      "Connect, discover, and collaborate with students across campus. Search student information and academic details at Parul Institute of Technology.",
+    url: "https://parul-student-hub.vercel.app",
+    siteName: "Student Hub",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Student Hub — Parul Institute of Technology",
+    description:
+      "Connect, discover, and collaborate with students across campus. Search student information and academic details at Parul Institute of Technology.",
+  },
 };
 
 export default function RootLayout({ children }) {
