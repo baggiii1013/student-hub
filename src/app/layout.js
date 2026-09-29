@@ -21,8 +21,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Student Hub",
-  description: "Connect, discover, and collaborate with students across campus",
+  metadataBase: new URL("https://parul-student-hub.vercel.app"),
+  title: "Student Hub | Connect, Discover & Collaborate",
+  description: "Connect, discover, and collaborate with students across campus. Enter the exact UG number to find student information.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Student Hub | Connect, Discover & Collaborate",
+    description: "Connect, discover, and collaborate with students across campus. Enter the exact UG number to find student information.",
+    url: "https://parul-student-hub.vercel.app",
+    siteName: "Student Hub",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }) {
